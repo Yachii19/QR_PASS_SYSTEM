@@ -162,32 +162,9 @@ link.click();
 // QR Verification
 let scannerActive = false;
 document.getElementById('scanBtn').addEventListener('click', startScanner);
-document.getElementById('uploadBtn').addEventListener('click', showUploadOption);
 document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
 document.getElementById('newVerifyBtn').addEventListener('click', resetVerification);
-document.getElementById('processImageBtn').addEventListener('click', processUploadedImage);
-document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-document.getElementById('uploadArea').addEventListener('click', () => {
-    document.getElementById('fileInput').click();
-});
 
-// Drag and drop
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '#323741';
-});
-
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.style.borderColor = '#ccc';
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = '#ccc';
-    if (e.dataTransfer.files.length) {
-        handleFileUpload({ target: { files: e.dataTransfer.files } });
-    }
-});
 
 // Updated verifyQRCode function in the frontend
 async function verifyQRCode(encryptedData) {
@@ -299,7 +276,6 @@ function startScanner() {
     }
     
     // UI Updates
-    document.getElementById('fileUploadContainer').classList.add('hidden');
     document.getElementById('scanBtn').classList.add('hidden');
     document.getElementById('stopScanBtn').classList.remove('hidden');
     document.getElementById('scannerContainer').classList.remove('hidden');
@@ -412,138 +388,12 @@ function stopScanner() {
     }
 }
 
-function showUploadOption() {
-    stopScanner();
-    document.getElementById('fileUploadContainer').classList.remove('hidden');
-    document.getElementById('scannerContainer').classList.add('hidden');
-    document.getElementById('verificationResult').classList.add('hidden');
-    document.getElementById('uploadStatus').textContent = '';
-    document.getElementById('uploadStatus').className = '';
-}
-
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const statusDiv = document.getElementById('uploadStatus');
-    statusDiv.innerHTML = '';
-    statusDiv.className = '';
-    
-    // Check if file is an image
-    if (!file.type.match('image.*')) {
-        statusDiv.textContent = 'Please upload an image file (JPEG, PNG, etc.)';
-        statusDiv.className = 'error-message';
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const imgPreview = document.getElementById('imagePreview');
-        imgPreview.src = e.target.result;
-        imgPreview.classList.remove('hidden');
-        document.querySelector('.img-box').classList.add('hidden');
-        imgPreview.dataset.imageData = e.target.result;
-    };
-    reader.onerror = function() {
-        document.getElementById('uploadStatus').textContent = 'Error reading file';
-        document.getElementById('uploadStatus').className = 'error-message';
-    };
-    reader.readAsDataURL(file);
-}
-
-function processUploadedImage() {
-    const imgPreview = document.getElementById('imagePreview');
-    const statusDiv = document.getElementById('uploadStatus');
-    const processingDiv = document.getElementById('imageProcessing');
-    
-    statusDiv.innerHTML = '';
-    statusDiv.className = '';
-    processingDiv.classList.remove('hidden');
-    
-    if (!imgPreview.dataset.imageData) {
-        statusDiv.textContent = 'No image to process';
-        statusDiv.className = 'error-message';
-        processingDiv.classList.add('hidden');
-        return;
-    }
-    
-    const img = new Image();
-    img.onload = function() {
-        if (img.width === 0 || img.height === 0) {
-            statusDiv.textContent = 'Invalid image dimensions';
-            statusDiv.className = 'error-message';
-            processingDiv.classList.add('hidden');
-            return;
-        }
-
-        setTimeout(() => {
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                const maxDimension = 2000;
-                let width = img.width;
-                let height = img.height;
-                
-                if (width > maxDimension || height > maxDimension) {
-                    const ratio = Math.min(maxDimension/width, maxDimension/height);
-                    width = Math.floor(width * ratio);
-                    height = Math.floor(height * ratio);
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const code = jsQR(imageData.data, width, height, {
-                    inversionAttempts: 'attemptBoth'
-                });
-                
-                processingDiv.classList.add('hidden');
-                
-                if (code) {
-                    statusDiv.textContent = 'QR code found!';
-                    statusDiv.className = 'success-message';
-                    verifyQRCode(code.data);
-                } else {
-                    statusDiv.innerHTML = `
-                        <p class="error-message">No QR code found in the image.</p>
-                        <p><strong>Tips:</strong></p>
-                        <ul>
-                            <li>Use a clear, high-quality image</li>
-                            <li>Ensure the QR code is properly lit</li>
-                            <li>Crop the image to focus on the QR code</li>
-                        </ul>
-                    `;
-                }
-            } catch (e) {
-                processingDiv.classList.add('hidden');
-                statusDiv.textContent = 'Error processing image: ' + e.message;
-                statusDiv.className = 'error-message';
-                console.error('Image processing error:', e);
-            }
-        }, 100);
-    };
-    
-    img.onerror = function() {
-        processingDiv.classList.add('hidden');
-        statusDiv.textContent = 'Error loading image';
-        statusDiv.className = 'error-message';
-    };
-    
-    img.src = imgPreview.dataset.imageData;
-}
-
 function resetVerification() {
     stopScanner();
-    document.getElementById('fileUploadContainer').classList.add('hidden');
     document.getElementById('verificationResult').classList.add('hidden');
     document.getElementById('fileInput').value = '';
     document.getElementById('imagePreview').src = '';
     document.getElementById('imagePreview').classList.add('hidden');
-    document.getElementById('uploadStatus').textContent = '';
-    document.getElementById('uploadStatus').className = '';
     document.getElementById('imageProcessing').classList.add('hidden');
     document.querySelector('.img-box').classList.remove('hidden');
 }

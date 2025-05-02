@@ -92,24 +92,9 @@
         </div>
         <div class="decrypt-options">
             <button id="scanBtn" class="scan-btn">Scan with Camera</button>
-            <button id="uploadBtn" class="upload-btn">Upload QR Code Image</button>
             <button id="stopScanBtn" class="hidden">Stop Scanner</button>
         </div>
         
-        <div id="fileUploadContainer" class="hidden">
-            <div class="upload-area" id="uploadArea">
-                <p>Drag & drop a QR code image here or click to select</p>
-                <input type="file" id="fileInput" accept="image/*">
-                <img id="imagePreview" class="hidden">
-                <div class="img-box"></div>
-                <div id="uploadStatus"></div>
-            </div>
-            <button id="processImageBtn" class="process-img-btn">Process Image</button>
-            <div id="imageProcessing" class="hidden">
-                <div class="loading"></div>
-                <p>Processing image...</p>
-            </div>
-        </div>
         
         <div id="scannerContainer" class="hidden">
             <video id="scanner" width="300" playsinline></video>
