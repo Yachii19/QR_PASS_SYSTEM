@@ -26,6 +26,12 @@ async function registerStudent() {
     const name = document.getElementById('studentName').value.trim();
     const course = document.getElementById('registerCourse').value;
     
+
+     if (studentId.length !== 10) {
+        alertPopup('Student ID must be exactly 10 characters long');
+        return;
+    }
+
     if (!studentId || !name || !course) {
         alertPopup('Please fill in all fields');
         return;
@@ -76,6 +82,12 @@ async function generateStudentQR() {
     const studentId = document.getElementById('qrStudentId').value.trim();
     const course = document.getElementById('qrCourse').value;
     
+    
+    if (studentId.length !== 10) {
+        alertPopup('Student ID must be exactly 10 characters long');
+        return;
+    }
+
     if (!studentId || !course) {
         alertPopup('Please enter student ID and select course');
         return;
@@ -100,6 +112,10 @@ async function generateStudentQR() {
         const data = await response.json();
         
         if (response.ok) {
+            // Store student data for download
+            document.getElementById('qrCodeCanvas').dataset.studentId = studentId;
+            document.getElementById('qrCodeCanvas').dataset.studentName = data.studentName || 'student';
+            
             // Clear previous QR code
             const canvas = document.getElementById('qrCodeCanvas');
             const ctx = canvas.getContext('2d');
@@ -111,7 +127,7 @@ async function generateStudentQR() {
             
             // Generate QR code directly to canvas
             QRCode.toCanvas(canvas, data.encryptedData, {
-                width: 250,  // Slightly smaller than canvas to ensure border
+                width: 250,
                 margin: 2,
                 errorCorrectionLevel: 'H'
             }, (error) => {
@@ -134,31 +150,44 @@ async function generateStudentQR() {
     }
 }
 
-// QR Download
+// QR DOWNLOAD
 function downloadQRCode() {
-const canvas = document.getElementById('qrCodeCanvas');
-if (!canvas) return;
+    const canvas = document.getElementById('qrCodeCanvas');
+    if (!canvas) return;
 
-// Create a temporary canvas with white background
-const tempCanvas = document.createElement('canvas');
-tempCanvas.width = canvas.width;
-tempCanvas.height = canvas.height;
-const tempCtx = tempCanvas.getContext('2d');
+    // Get student details from the canvas dataset
+    const studentId = canvas.dataset.studentId || '';
+    const studentName = canvas.dataset.studentName || 'student';
+    
+    // Create a filename with student ID and name
+    let filename = 'GraduationPass';
+    if (studentId) filename += `_${studentId}`;
+    if (studentName) {
+        // Remove special characters and replace spaces with underscores
+        const cleanName = studentName.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_');
+        filename += `_${cleanName}`;
+    }
+    filename += '.png';
 
-// Fill with white background
-tempCtx.fillStyle = '#ffffff';
-tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    // Create a temporary canvas with white background
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
 
-// Draw the QR code
-tempCtx.drawImage(canvas, 0, 0);
+    // Fill with white background
+    tempCtx.fillStyle = '#ffffff';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-// Create download link
-const link = document.createElement('a');
-link.download = 'graduation-pass.png';
-link.href = tempCanvas.toDataURL('image/png');
-link.click();
+    // Draw the QR code
+    tempCtx.drawImage(canvas, 0, 0);
+
+    // Create download link
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
 }
-
 // QR Verification
 let scannerActive = false;
 document.getElementById('scanBtn').addEventListener('click', startScanner);
