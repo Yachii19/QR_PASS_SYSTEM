@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Encryption/Decryption with QR Codes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <link rel="stylesheet" href="./assets/css/global.css">
+    <link rel="stylesheet" href="./assets/css/alert.css">
+    <link rel="stylesheet" href="./assets/css/user.css">
+
+</head>
+<body>
+    <h1 class="title">Graduation QR Pass System</h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="register">Register</div>
+        <div class="tab" data-tab="generate">Generate QR</div>
+        <div class="tab" data-tab="verify">Verify QR</div>
+    </div>
+    
+    <!-- Registration Tab -->
+    <div id="register" class="tab-content active">
+        <div class="registration-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="studentId">Student ID</label>
+                    <input type="number" id="studentId" placeholder="Enter student ID">
+                </div>
+                <div class="form-group">
+                    <label for="studentName">Full Name</label>
+                    <input type="text" id="studentName" placeholder="Enter full name">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="registerCourse">Course</label>
+                <select id="registerCourse" class="course-select">
+                  
+                </select>
+            </div>
+            
+            <button id="registerBtn" class="encrypt-btn">Register Student</button>
+            
+            <div id="registrationStatus" class="hidden"></div>
+        </div>
+    </div>
+    
+    <!-- Generate QR Tab -->
+    <div id="generate" class="tab-content">
+        <div class="form-group">
+            <label for="qrStudentId">Student ID</label>
+            <input type="text" id="qrStudentId" placeholder="Enter student ID">
+        </div>
+        
+        <div class="form-group">
+            <label for="qrCourse">Course</label>
+            <select id="qrCourse" class="course-select">
+               
+            </select>
+        </div>
+        
+        <button id="generateQrBtn" class="encrypt-btn">Generate QR Pass</button>
+        
+        <hr>
+        
+        <div id="qrCodeContainer" class="hidden">
+            <div class="qr-border">
+                <h3>Graduation QR Pass</h3>
+                <canvas id="qrCodeCanvas"></canvas>
+                <div class="qr-actions">
+                    <button id="downloadBtn" class="download-qr-btn">Download QR Code</button>
+                </div>
+            </div>
+            <p>Present this QR code at the graduation venue for verification</p>
+        </div>
+    </div>
+    
+    <!-- Verify QR Tab -->
+    <div id="verify" class="tab-content">
+        <div class="form-group">
+            <label for="verifyCourse">Course</label>
+            <select id="verifyCourse" class="course-select">
+                
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="encryptionKey">Encryption Key</label>
+            <input type="password" id="encryptionKey" placeholder="Enter course encryption key">
+        </div>
+        <div class="decrypt-options">
+            <button id="scanBtn" class="scan-btn">Scan with Camera</button>
+            <button id="uploadBtn" class="upload-btn">Upload QR Code Image</button>
+            <button id="stopScanBtn" class="hidden">Stop Scanner</button>
+        </div>
+        
+        <div id="fileUploadContainer" class="hidden">
+            <div class="upload-area" id="uploadArea">
+                <p>Drag & drop a QR code image here or click to select</p>
+                <input type="file" id="fileInput" accept="image/*">
+                <img id="imagePreview" class="hidden">
+                <div class="img-box"></div>
+                <div id="uploadStatus"></div>
+            </div>
+            <button id="processImageBtn" class="process-img-btn">Process Image</button>
+            <div id="imageProcessing" class="hidden">
+                <div class="loading"></div>
+                <p>Processing image...</p>
+            </div>
+        </div>
+        
+        <div id="scannerContainer" class="hidden">
+            <video id="scanner" width="300" playsinline></video>
+            <div id="cameraStatus"></div>
+        </div>
+        
+        <div id="verificationResult" class="hidden">
+            <h3>Verification Result</h3>
+            <div id="verificationMessage"></div>
+            <button id="newVerifyBtn">Verify Another QR Code</button>
+        </div>
+    </div>
+
+    <!-- Custom Alert -->
+    <div id="customAlert" class="custom-alert">
+        <div class="alert-content">
+            <span id="alertMessage"></span>
+            <button id="alertCloseButton">OK</button>
+        </div>
+    </div>
+
+
+    <script type="module" src="./assets/scripts/utils/alert.js"></script>
+    <script type="module" src="./assets/scripts/user.js"></script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+/* Mobile View */
+.landing-page{
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+    padding: 0 1rem;
+}
+
+.enter-main-page-container {
+    width: 100%;
+}
+
+.enter-main-page-container > p {
+    font-size: 12px;
+    margin-bottom: 1rem;
+}
+
+.enter-main-page-container > div {
+    display: flex;
+    flex-direction: column;
+    column-gap: 20px;
+}
+
+.enter-main-page-container > div > a {
+    width: 100%;
+}
+
+.get-started-container {
+    display: flex;
+    width: 100%;
+    padding: 20px;
+}
+
+.get-started-container > .col-1 {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+    justify-content: center;
+}
+
+.get-started-container > .col-1 > :first-child {
+    font-size: 12px;
+}
+
+.get-started-container > .col-1 > :nth-child(2) {
+    font-size: 12px;
+}
+
+.get-started-container > .col-1 > :last-child {
+    font-size: 10px;
+    color: #999999;
+}
+
+.get-started-container > .col-2 {
+    width: 30%;
+    font-size: 12px;
+    display: flex;
+    align-items: end;
+    justify-content: end;
+}
+
+h2 {
+    font-weight: 500;
+    font-size: 20px;
+    margin-bottom: 1.5rem;
+}
+
+h1 {
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    color: #565656;
+    font-size: 12px;
+}
+
+.cta-button {
+    display: flex;
+    justify-content: center;
+    align-self: center;
+    width: 100px;
+    padding: 10px 12px;
+    border: 1px solid #323741;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: #FFFFFF;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-subtitle {
+    font-size: 12px;
+}
+
+.cta-button:hover {
+    color: #212121;
+    background-color: #FFFFFF;
+}
+
+.learn-encryption-container > p{
+    font-size: 12px;
+    margin-bottom: 1rem;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 10px;
+    column-gap: 10px;
+}
+
+.grid-container > a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-content {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    width: 100%;
+    border: 1px solid #323741;
+    border-radius: 5px;
+    color: #FFFFFF;
+    transition: border 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.grid-content:hover {
+    border: 1px solid #FFFFFF;
+    background-color: #FFFFFF;
+    color: #212121;
+}
+
+/* Media Query for Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .landing-page {
+        gap: 50px; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center; 
+        height: auto; 
+        margin-bottom: 20px;
+    }
+
+    .enter-main-page-container {
+        width: 60%;
+        height: 30dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .enter-main-page-container > p {
+        font-size: 16px;
+    }
+    
+    .enter-main-page-container > div {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .get-started-container > .col-1 {
+        row-gap: 8px;
+    }
+    
+    .get-started-container > .col-1 > :first-child {
+        font-size: 14px;
+    }
+    
+    .get-started-container > .col-1 > :nth-child(2) {
+        font-size: 14px;
+    }
+    
+    .get-started-container > .col-1 > :last-child {
+        font-size: 12px;
+    }
+    
+    .get-started-container > .col-2 {
+        font-size: 14px;
+    }
+
+    h2 {
+        font-size: 20px; 
+    }
+
+    h1 {
+        font-size: 2.5rem; 
+    }
+
+    .subtitle {
+        font-size: 0.9rem; 
+    }
+
+    .enter-main-page-container {
+        margin-bottom: 30px; 
+    }
+
+    .learn-encryption-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .learn-encryption-container > p {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .grid-container {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 10px;
+    }
+
+    .grid-content {
+        font-size: 0.8rem; 
+        height: 150px; 
+        width: 130px; 
+    }
+}
+
+/* Media Query for Desktops */
+@media (min-width: 1024px) {
+
+    .landing-page {
+        gap: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .welcome-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: end;
+        height: 20dvh;
+        margin-bottom: 20px;
+    }
+   
+    .enter-main-page-container {
+        width: 40%;
+        height: 30dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .enter-main-page-container > p {
+        font-size: 16px;
+    }
+    
+    .enter-main-page-container > div {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .get-started-container > .col-1 {
+        row-gap: 8px;
+    }
+    
+    .get-started-container > .col-1 > :first-child {
+        font-size: 14px;
+    }
+    
+    .get-started-container > .col-1 > :nth-child(2) {
+        font-size: 14px;
+    }
+    
+    .get-started-container > .col-1 > :last-child {
+        font-size: 12px;
+    }
+    
+    .get-started-container > .col-2 {
+        font-size: 14px;
+    }
+
+    h2 {
+        display: none;
+    }
+
+    h1 {
+        font-size: 3rem;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+    }   
+
+    .enter-main-page-container {
+        margin-bottom: 50px;
+    }
+
+    .learn-encryption-container{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .learn-encryption-container > p {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    .grid-container {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 15px;
+    }
+
+    .grid-content {
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        width: 150px;
+        border: 1px solid #323741;
+        border-radius: 5px;
+        color: #FFFFFF;
+        transition: border 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    }
+}
+
+/* Media Query for small phones */
+@media (max-width: 429px) {
+    body {
+        padding: 30px;
+    }
+}

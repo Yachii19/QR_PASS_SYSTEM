@@ -1,0 +1,326 @@
+/* Mobile View */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: #FFFFFF;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+h1, h2, h3 {
+    color: #FFFFFF;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.logout-btn,
+.danger-btn {
+    background: linear-gradient(to right, #b92b27, #c94b4b);
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.logout-btn:hover,
+.danger-btn:hover {
+    background: linear-gradient(to right, #c94b4b, #b92b27);
+    opacity: 0.8;
+}
+
+.filter-section {
+    background-color: #23242A;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 400;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #323741;
+    background-color: #23242A;
+    color: #FFFFFF;
+    border-radius: 5px;
+}
+
+.filter-btn,
+.primary-btn {
+    background: linear-gradient(to right, #26489A, #2980b9);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.filter-btn:hover,
+.primary-btn:hover {
+    background: linear-gradient(to right, #2980b9, #26489A); 
+    opacity: 0.8;
+}
+
+#attendanceTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#attendanceTable th, 
+#attendanceTable td {
+    border: 1px solid #323741;
+    padding: 12px;
+    text-align: left;
+}
+
+#attendanceTable th {
+    background-color: #23242A;
+    font-weight: 500;
+}
+
+#attendanceTable tr:nth-child(even) {
+    background-color: #191C24;
+}
+
+#attendanceTable tr:hover {
+    background-color: #323741;
+}
+
+.no-records {
+    text-align: center;
+    padding: 20px;
+    color: #9E9E9E;
+}
+
+/* Login Page Styles */
+.login-main-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #23242A;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #26489A;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    background-color: #2980b9;
+}
+
+.login-error {
+    color: #F44336;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* Course Management Styles */
+.management-section {
+    background-color: #23242A;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #323741;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.success-btn {
+    background-color: #2E7D32;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.success-btn:hover {
+    background-color: #1B5E20;
+}
+
+.courses-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.courses-table th, 
+.courses-table td {
+    border: 1px solid #323741;
+    padding: 12px;
+    text-align: left;
+}
+
+.courses-table th {
+    background-color: #23242A;
+    font-weight: 500;
+}
+
+.courses-table tr:nth-child(even) {
+    background-color: #191C24;
+}
+
+.courses-table tr:hover {
+    background-color: #323741;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    align-items: center;
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: #23242A;
+    padding: 30px 40px;
+    border-radius: 10px;
+    width: 500px;
+    animation: popup-animation 0.5s ease-out;
+    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: #FFFFFF;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* desktops */
+@media (min-width: 1024px) {
+    .login-main-container{
+        display: block;
+    }
+}
+
+/* iPad/Tablet View (768px - 1023px) */
+@media (max-width: 768px) and (max-width: 1023px) {
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #attendanceTable, .courses-table {
+        font-size: 14px;
+    }
+    
+    #attendanceTable th, 
+    #attendanceTable td,
+    .courses-table th,
+    .courses-table td {
+        padding: 8px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+.status-message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.success-message {
+    background-color: #2E7D32;
+    color: white;
+}
+
+.error-message {
+    background-color: #CE3333;
+    color: white;
+}
