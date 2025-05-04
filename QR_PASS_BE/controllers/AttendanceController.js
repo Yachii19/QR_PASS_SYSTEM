@@ -6,10 +6,10 @@ const { errorResponse } = require('../utils/responses');
 
 exports.verifyQR = async (req, res) => {
     try {
-        const { encryptedData, courseName, userProvidedKey } = req.body;
+        const { encryptedData, courseName } = req.body; // Removed userProvidedKey
         
-        if (!encryptedData || !courseName || !userProvidedKey) {
-            return errorResponse(res, 400, 'All fields (encryptedData, courseName, userProvidedKey) are required');
+        if (!encryptedData || !courseName) {
+            return errorResponse(res, 400, 'All fields (encryptedData, courseName) are required');
         }
 
         const course = await Course.findOne({ name: courseName });
@@ -19,14 +19,15 @@ exports.verifyQR = async (req, res) => {
 
         let decryptedString;
         try {
-            const bytes = CryptoJS.AES.decrypt(encryptedData, userProvidedKey);
+            // Use the course's encryptionKey from database instead of user provided key
+            const bytes = CryptoJS.AES.decrypt(encryptedData, course.encryption_key);
             decryptedString = bytes.toString(CryptoJS.enc.Utf8);
             
             if (!decryptedString) {
-                return errorResponse(res, 401, 'Invalid key - decryption failed');
+                return errorResponse(res, 401, 'Invalid QR code - decryption failed');
             }
         } catch (decryptError) {
-            return errorResponse(res, 401, 'Something went wrong. Please try again');
+            return errorResponse(res, 401, 'Invalid QR code format');
         }
 
         let decryptedData;
@@ -98,6 +99,7 @@ exports.verifyQR = async (req, res) => {
         errorResponse(res, 500, 'Internal server error during verification');
     }
 };
+
 
 exports.getAttendances = async (req, res) => {
     try {

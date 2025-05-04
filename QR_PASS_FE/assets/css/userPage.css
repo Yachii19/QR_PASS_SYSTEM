@@ -1,37 +1,79 @@
-/* Mobile View */
+body {
+    max-width: 100%;
+    margin: 0 auto;
+    color: #FFFFFF;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+img {
+    width: 50px;
+}
+
+.main-container {
+    background-color: #000;
+    padding: 3rem;
+    z-index: 1;
+    border-radius: 1rem;
+    border: 1px solid #404040;
+}
+
 .title {
     font-size: 20px;
     font-weight: 500;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .tabs {
     display: flex;
+    height: 40px;
     margin-bottom: 2rem;
-    gap: 10px;
+    gap: 15px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    padding-bottom: 5px;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .tab {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    gap: 15px;
     cursor: pointer;
-    width: 70px;
-    height: 26px;
-    background-color: #191C24;
     border: none;
-    border-radius: 20px;
+    font-size: 0.8rem;
+    height: 100%;
+    border-radius: 5px;
+    padding: 0.6rem;
+    background-color: #191C24;
+}
+
+.tab i {
+    font-size: 1rem;
 }
 
 .tab.active {
     background-color: #323741;
     color: white;
-    border: none;
 }
 
 .tab-content {
     display: none;
+    padding: 15px;
+    border: 1px dashed #323741;
+    border-radius: 0 0 5px 5px;
+    margin-bottom: 40px;
+    border-radius: 5px;
 }
 
 .tab-content.active {
@@ -39,14 +81,13 @@
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 400;
-    font-size: 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
     color: #FFFFFF;
 }
 
@@ -56,8 +97,8 @@ input[type="password"],
 select {
     color: #FFFFFF;
     width: 100%;
-    font-size: 10px;
-    padding: 10px 15px;
+    font-size: 12px;
+    padding: 10px 12px;
     border: 1px solid #323741;
     background-color: #23242A;
     border-radius: 5px;
@@ -72,15 +113,14 @@ input[type="text"]:hover,
 input[type="number"]:hover,
 input[type="password"]:hover,
 select:hover {
-    color: #FFFFFF;
-    border: 1px solid #FFFFFF
+    border: 1px solid #FFFFFF;
 }
 
 .generate-key-btn {
     background-color: #26489A;
-    font-size: 10px;
+    font-size: 12px;
     color: #FFFFFF;
-    padding: 10px 25px;
+    padding: 10px;
     border: none;
     cursor: pointer;
     border-radius: 5px;
@@ -91,13 +131,14 @@ select:hover {
     background-color: #2980b9;
 }
 
+#newVerifyBtn,
 .encrypt-btn,
 .download-qr-btn,
 .copy-key-btn,
 #newScanBtn {
     color: #212121;
     background-color: #FFFFFF;
-    font-size: 10px;
+    font-size: 12px;
     width: 100%;
     padding: 10px;
     font-weight: 700;
@@ -106,13 +147,13 @@ select:hover {
     transition: opacity 0.3s ease;
     margin-bottom: 1rem;
     cursor: pointer;
+    height: 50px;
 }
 
 .encrypt-btn:hover,
 .download-qr-btn:hover,
 .copy-key-btn:hover,
-#newScanBtn:hover
-{
+#newScanBtn:hover {
     opacity: 0.7;
 }
 
@@ -136,50 +177,60 @@ hr {
 }
 
 .qr-border {
-    border: 1px solid #323741;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     border-radius: 10px;
-    padding: 20px;
+    padding: 15px;
     margin-bottom: 10px;
+    min-width: auto;
 }
 
-.qr-border > h3{
+.qr-border > h3 {
     font-size: 10px;
     margin-bottom: 10px;
 }
 
 #qrCodeCanvas {
-    height: 150px;
-    width: 150px;
+    width: 200px;
+    height: 200px;
     background-color: white;
     border: 1px solid #ddd;
 }
 
-.download-qr-btn,
-.copy-key-btn {
-    width: 150px;
+.download-qr-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
+.download-qr-btn i {
+    font-size: 14px;
+}
 
-/* Decryption Styling Starts */
+/* Decryption Styling */
 .decrypt-options {
     display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1rem;
 }
 
 .decrypt-options > button {
     flex: 1;
-    font-size: 10px;
     padding: 10px;
     border: none;
     color: #212121;
     background-color: #FFFFFF;
-    font-size: 10px;
-    width: 100%;
-    padding: 10px;
     font-weight: 700;
     border-radius: 5px;
     transition: opacity 0.3s ease;
-    margin-bottom: 1rem;
     cursor: pointer;
+    height: 50px;
+    margin-bottom: 1rem;
 }
 
 .decrypt-options > button:hover {
@@ -188,17 +239,18 @@ hr {
 
 #stopScanBtn {
     background-color: #CE3333;
-    color: #FFFFFF
+    color: #FFFFFF;
 }
 
 #scannerContainer {
     text-align: center;
-} 
+}
+
 #scanner {
     max-width: 300px;
     background-color: white;
     border: 1px solid #ddd;
-} 
+}
 
 #decryptedResult {
     margin-top: 30px;
@@ -234,16 +286,6 @@ hr {
     font-size: 10px;
 }
 
-.upload-area > p {
-    margin-bottom: 15px;
-}
-
-.upload-area > .img-box {
-    width: 150px;
-    height: 150px;
-    background-color: white;
-}
-
 .upload-area:hover {
     border-color: #FFFFFF;
 }
@@ -254,7 +296,7 @@ hr {
 
 .process-img-btn {
     background-color: #26489A;
-    font-size: 10px;
+    font-size: 12px;
     padding: 10px;
     width: 100%;
     color: #FFFFFF;
@@ -269,13 +311,6 @@ hr {
     background-color: #2980b9;
 }
 
-.decrypt-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
 .error-message {
     color: #d9534f;
     margin-top: 10px;
@@ -283,7 +318,12 @@ hr {
 
 .success-message {
     color: #5cb85c;
-    margin-top: 10px;
+    margin-block: 10px;
+}
+
+.info-message {
+    color: #FFC107;
+    margin-block: 10px;
 }
 
 #imagePreview {
@@ -326,21 +366,6 @@ hr {
     margin-top: 20px;
 }
 
-#qrCodeCanvas {
-    width: 250px;
-    height: 250px;
-    background-color: white;
-    border: 1px solid #ddd;
-    margin: 0 auto;
-}
-
-.qr-border {
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    display: inline-block;
-}
-
 .registration-form {
     margin-bottom: 20px;
 }
@@ -355,18 +380,6 @@ hr {
     flex: 1;
 }
 
-.course-select {
-    width: 100%;
-}
-
-/* For download to ensure proper sizing */
-canvas {
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-}
-
 .student-info {
     background-color: #23242A;
     padding: 15px;
@@ -379,22 +392,12 @@ canvas {
     font-size: 14px;
 }
 
-.success-message {
-    color: #4CAF50;
-    font-weight: bold;
-    margin: 10px 0;
+#verificationMessage {
+    margin-bottom: 1rem;
 }
 
-.error-message {
-    color: #F44336;
-    font-weight: bold;
-    margin: 10px 0;
-}
-
-.info-message {
-    color: #2196F3;
-    font-weight: bold;
-    margin: 10px 0;
+#verificationResult > h3 {
+    margin-bottom: 1rem;
 }
 
 .verify-time {
@@ -426,7 +429,6 @@ canvas {
     color: #BDBDBD;
 }
 
-/* Loading animation for verification */
 @keyframes pulse {
     0% { opacity: 0.6; }
     50% { opacity: 1; }
@@ -438,33 +440,239 @@ canvas {
     color: #FFC107;
 }
 
-/* desktops */
-@media (min-width: 1024px) {
+/* Mobile View (up to 767px) */
+@media (max-width: 767px) {
     body {
-        max-width: 800px;
-        margin: 0 auto;
-        color: #FFFFFF;
+        padding: 8px;
     }
+
+    .main-container {
+        padding: 1.5rem;
+        width: 100%;
+    }
+
+    .title {
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
     .tabs {
-        display: flex;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #323741;
+        height: 35px;
+        gap: 8px;
+        margin-bottom: 1rem;
+        padding-bottom: 3px;
     }
+
     .tab {
-        cursor: pointer;
-        border: none;
-        font-size: 1rem;
-        width: 120px;
-        height: 40px;
-        margin-right: 5px;
-        border-radius: 5px 5px 0 0;
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        gap: 6px;
+    }
+
+    .tab i {
+        font-size: 0.8rem;
     }
 
     .tab-content {
-        display: none;
-        padding: 30px;
-        border: 1px dashed #323741;
-        border-radius: 0 0 5px 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+    }
+
+    input[type="text"], 
+    input[type="number"],
+    input[type="password"],
+    select {
+        font-size: 0.7rem;
+        padding: 8px 10px;
+        height: 35px;
+    }
+
+    .generate-key-btn,
+    .encrypt-btn,
+    .download-qr-btn,
+    .copy-key-btn,
+    #newScanBtn {
+        font-size: 0.7rem;
+        padding: 8px;
+        height: 35px;
+    }
+
+    .qr-border {
+        padding: 10px;
+    }
+
+    #qrCodeCanvas {
+        width: 180px;
+        height: 180px;
+    }
+
+    .download-qr-btn {
+        width: 100%;
+    }
+
+    .decrypt-options > button {
+        height: 35px;
+        font-size: 0.7rem;
+    }
+
+    #scanner {
+        max-width: 250px;
+    }
+
+    .student-info p {
+        font-size: 0.7rem;
+    }
+
+    .verification-help {
+        padding: 10px;
+    }
+
+    .verification-help ul {
+        padding-left: 15px;
+    }
+}
+
+/* Tablet View (768px to 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    body {
+        padding: 15px;
+    }
+
+    .main-container {
+        padding: 2rem;
+        width: 90%;
+    }
+
+    .title {
+        font-size: 1.5rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .tabs {
+        height: 40px;
+        gap: 12px;
+        margin-bottom: 1.5rem;
+        padding-bottom: 4px;
+    }
+
+    .tab {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.7rem;
+        gap: 8px;
+    }
+
+    .tab i {
+        font-size: 0.9rem;
+    }
+
+    .tab-content {
+        padding: 15px;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    input[type="text"], 
+    input[type="number"],
+    input[type="password"],
+    select {
+        font-size: 0.8rem;
+        padding: 10px 12px;
+        height: 40px;
+    }
+
+    .generate-key-btn,
+    .encrypt-btn,
+    .download-qr-btn,
+    .copy-key-btn,
+    #newScanBtn {
+        font-size: 0.8rem;
+        padding: 10px;
+        height: 40px;
+    }
+
+    .qr-border {
+        padding: 15px;
+    }
+
+    #qrCodeCanvas {
+        width: 200px;
+        height: 200px;
+    }
+
+    .download-qr-btn {
+        width: 250px;
+    }
+
+    .decrypt-options > button {
+        height: 40px;
+        font-size: 0.8rem;
+    }
+
+    #scanner {
+        max-width: 300px;
+    }
+
+    .student-info p {
+        font-size: 0.8rem;
+    }
+
+    .verification-help {
+        padding: 15px;
+    }
+}
+
+/* Laptop View (1024px and above) */
+@media (min-width: 1024px) {
+    body {
+        padding: 20px;
+    }
+
+    .main-container {
+        padding: 3rem;
+        width: 800px;
+    }
+
+    .title {
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .tabs {
+        height: 50px;
+        gap: 15px;
+        margin-bottom: 2rem;
+        padding-bottom: 5px;
+    }
+
+    .tab {
+        font-size: 1rem;
+        padding: 0.6rem 0.8rem;
+        gap: 10px;
+    }
+
+    .tab i {
+        font-size: 1.1rem;
+    }
+
+    .tab-content {
+        padding: 20px;
         margin-bottom: 40px;
     }
 
@@ -473,258 +681,56 @@ canvas {
     }
 
     label {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 14px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
     }
 
-    input[type="text"],
+    input[type="text"], 
     input[type="number"],
     input[type="password"],
     select {
-        padding: 15px 20px;
-        font-size: 16px;
+        font-size: 0.9rem;
+        padding: 12px 15px;
+        height: 45px;
     }
 
+    .generate-key-btn,
     .encrypt-btn,
     .download-qr-btn,
     .copy-key-btn,
     #newScanBtn {
-        font-size: 16px;
-        padding: 15px;
-        font-weight: 700 !important;
-        border: none;
-        transition: opacity 0.3s ease;
-        margin-bottom: 25px;
-    }
-
-    #qrCodeContainer {
-        margin-top: 25px;
-    }
-    
-    
-    #qrCodeContainer > p {
-        font-size: 1rem;
+        font-size: 0.9rem;
+        padding: 12px;
+        height: 45px;
     }
 
     .qr-border {
-        min-width: 500px;
-        border-radius: 10px;
-        padding: 30px;
-        margin-bottom: 15px;
-    }
-
-    .qr-border > h3{
-        font-size: 12px;
-        margin-bottom: 15px;
-        font-weight: 400;
-    }  
-
-    #qrCodeCanvas {
-        margin-bottom: 20px;
-    }
-
-    .download-qr-btn,
-    .copy-key-btn {
-        width: 100%;
-    }
-
-    /* Decrypt */
-    .decrypt-options {
-        margin-top: 20px;
-    }
-
-    .decrypt-options > button {
-        font-size: 16px;
-        width: 100%;
-        padding: 15px;
-        font-weight: 700;
-        border-radius: 5px;
-        transition: opacity 0.3s ease;
-        margin-bottom: 1rem;
-    }
-
-    #decryptedResult > h3 {
-        font-size: 16px;
-        font-weight: 400;
-    }
-
-    #scannerContainer {
-        margin-top: 30px;
-        text-align: center;
-    }
-    
-    #decryptedMessage {
-        font-size: 16px;
-        padding: 15px 20px;
-        border: 1px solid #323741;
-        border-radius: 4px;
-        white-space: pre-wrap;
-        margin-bottom: 50px;
-    }
-
-    .upload-area {
-        border: 1px dashed #323741;
         padding: 20px;
     }
 
-    .upload-area > p {
-        font-size: 12px;
-        font-weight: 400;
-    }
-
-    .process-img-btn {
-        font-size: 16px;
-        padding: 15px 20px;
-    }
-
-    .loading {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #3498db;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 10px auto;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    .qr-actions {
-        margin-top: 15px;
-    }
-    .key-options {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-    .key-options input {
-        flex: 1;
-    }
-    .decryption-key-container {
-        margin-top: 20px;
-    }
-}
-
-/* iPad/Tablet View (768px - 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
-    body {
-        padding: 30px;
-        max-width: 100%;
-    }
-
-    .title {
-        font-size: 28px;
-        margin-bottom: 1.5rem;
-    }
-
-    .tabs {
-        margin-bottom: 30px;
-    }
-
-    .tab {
-        width: 100px;
-        height: 40px;
-        font-size: 14px;
-    }
-
-    .tab-content {
-        padding: 25px;
-    }
-
-    label {
-        font-size: 14px;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="password"],
-    select {
-        padding: 12px 18px;
-        font-size: 14px;
-    }
-
-    .generate-key-btn {
-        font-size: 14px;
-        padding: 12px 25px;
-    }
-
-    .encrypt-btn,
-    .download-qr-btn,
-    .copy-key-btn,
-    #newScanBtn {
-        font-size: 14px;
-        padding: 12px;
-    }
-
-    /* QR Code Section */
-    .qr-border {
-        min-width: 400px;
-        padding: 25px;
-    }
-
-    .qr-border > h3 {
-        font-size: 16px;
-    }
-
     #qrCodeCanvas {
-        width: 200px;
-        height: 200px;
+        width: 250px;
+        height: 250px;
     }
 
-    /* Decryption Section */
-    .decrypt-options {
-        flex-direction: row;
-        gap: 15px;
+    .download-qr-btn {
+        width: 300px;
     }
 
     .decrypt-options > button {
-        font-size: 14px;
-        padding: 12px;
+        height: 45px;
+        font-size: 0.9rem;
     }
 
     #scanner {
-        width: 400px;
-        height: auto;
+        max-width: 400px;
     }
 
-    #decryptedMessage {
-        font-size: 14px;
-        padding: 15px;
+    .student-info p {
+        font-size: 0.9rem;
     }
 
-    /* Upload Area */
-    .upload-area {
-        padding: 30px;
-    }
-
-    .upload-area > p {
-        font-size: 14px;
-    }
-
-    .process-img-btn {
-        font-size: 14px;
-        padding: 12px;
-    }
-
-   
-
-    /* Form Elements */
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    /* Key Options */
-    .key-options {
-        gap: 15px;
-    }
-
-    /* Loading Animation */
-    .loading {
-        width: 40px;
-        height: 40px;
-        border-width: 5px;
+    .verification-help {
+        padding: 20px;
     }
 }

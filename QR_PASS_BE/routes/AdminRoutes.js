@@ -7,7 +7,5 @@ const { verifyAdmin } = require('../middlewares/auth');
 router.post('/register', adminController.register);
 router.post('/login', adminController.login);
 
-// Protected routes
-// Add any admin-specific protected routes here
 
 module.exports = router;

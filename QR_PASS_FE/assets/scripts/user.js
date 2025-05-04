@@ -8,10 +8,6 @@ document.querySelectorAll('.tab').forEach(tab => {
         
         tab.classList.add('active');
         document.getElementById(tab.dataset.tab).classList.add('active');
-        
-        if (tab.dataset.tab !== 'verify' && window.scannerStream) {
-            stopScanner();
-        }
     });
 });
 
@@ -189,243 +185,249 @@ function downloadQRCode() {
     link.click();
 }
 // QR Verification
-let scannerActive = false;
-document.getElementById('scanBtn').addEventListener('click', startScanner);
-document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
-document.getElementById('newVerifyBtn').addEventListener('click', resetVerification);
+const verifyCourseSelect = document.getElementById('verifyCourse');
+const uploadBtn = document.getElementById('uploadBtn');
+const qrFile = document.getElementById('qrFile');
+const verificationResult = document.getElementById('verificationResult');
+const verificationMessage = document.getElementById('verificationMessage');
+const newVerifyBtn = document.getElementById('newVerifyBtn');
 
-
-// Updated verifyQRCode function in the frontend
-async function verifyQRCode(encryptedData) {
-    const course = document.getElementById('verifyCourse').value;
-    const userProvidedKey = document.getElementById('encryptionKey').value.trim();
-    
-    if (!course || !userProvidedKey) {
-        alertPopup('Please select the course and enter the encryption key');
-        return;
-    }
-    
-    const verifyBtn = document.getElementById('processImageBtn') || document.querySelector('.scan-btn');
-    const originalBtnText = verifyBtn.textContent;
-    verifyBtn.disabled = true;
-    verifyBtn.textContent = 'Verifying...';
-    
+// Load courses for verification dropdown
+async function loadCoursesForVerification() {
     try {
-        const response = await fetch(`${API_BASE_URL}/attendance/verify-qr`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                encryptedData,
-                courseName: course,
-                userProvidedKey
-            })
-        });
-        
+        const response = await fetch(`${API_BASE_URL}/courses/full`);
         const data = await response.json();
         
-        if (!response.ok) {
-            console.log(data);
-            throw new Error(data.error || 'Verification failed');
-        }
-
-        // Display verification result
-        const resultDiv = document.getElementById('verificationMessage');
-        resultDiv.innerHTML = '';
-        
-        if (data.success) {
-            // Create student info section
-            const studentInfo = document.createElement('div');
-            studentInfo.className = 'student-info';
-            studentInfo.innerHTML = `
-                <p><strong>Student ID:</strong> ${data.student.studentId}</p>
-                <p><strong>Name:</strong> ${data.student.name}</p>
-                <p><strong>Course:</strong> ${data.student.course}</p>
-            `;
-            resultDiv.appendChild(studentInfo);
-            
-            // Create status message
-            const statusMsg = document.createElement('p');
-            statusMsg.className = data.action === 'time_in' ? 'success-message' : 'info-message';
-            statusMsg.innerHTML = `✅ ${data.message}`;
-            resultDiv.appendChild(statusMsg);
-            
-            // Add time records
-            const timeIn = document.createElement('p');
-            timeIn.innerHTML = `<strong>Time In:</strong> ${new Date(data.time_in).toLocaleString()}`;
-            resultDiv.appendChild(timeIn);
-            
-            if (data.time_out) {
-                const timeOut = document.createElement('p');
-                timeOut.innerHTML = `<strong>Time Out:</strong> ${new Date(data.time_out).toLocaleString()}`;
-                resultDiv.appendChild(timeOut);
+        if (response.ok) {
+            // Clear existing options except the first one
+            while (verifyCourseSelect.options.length > 1) {
+                verifyCourseSelect.remove(1);
             }
             
-            // Add verification timestamp
-            const verifyTime = document.createElement('p');
-            verifyTime.className = 'verify-time';
-            verifyTime.innerHTML = `<em>Verified at: ${new Date().toLocaleString()}</em>`;
-            resultDiv.appendChild(verifyTime);
+            // Add courses from backend
+            data.courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.name;
+                option.textContent = course.name;
+                verifyCourseSelect.appendChild(option);
+            });
+        } else {
+            throw new Error(data.error || 'Failed to load courses');
         }
-        
-        document.getElementById('verificationResult').classList.remove('hidden');
-        
     } catch (error) {
-        console.error('Verification error:', error);
-        const resultDiv = document.getElementById('verificationMessage');
-        resultDiv.innerHTML = `
-            <p class="error-message">${error.message}</p>
-            <div class="verification-help">
-                <p><strong>Possible solutions:</strong></p>
-                <ul>
-                    <li>Ensure you selected the correct course</li>
-                    <li>Check that the encryption key is correct</li>
-                    <li>Make sure the QR code hasn't been tampered with</li>
-                    <li>Try scanning again in better lighting conditions</li>
-                </ul>
-            </div>
-        `;
-        document.getElementById('verificationResult').classList.remove('hidden');
-    } finally {
-        if (verifyBtn) {
-            verifyBtn.disabled = false;
-            verifyBtn.textContent = originalBtnText;
-        }
+        console.error('Load courses error:', error);
+        showStatusMessage('courseStatus', 'Failed to load courses', false);
     }
 }
 
+// Handle file upload
+uploadBtn.addEventListener('click', () => {
+    qrFile.click();
+});
 
-// Enhanced QR scanning function
-function startScanner() {
-    const course = document.getElementById('verifyCourse').value;
-    if (!course) {
-        alertPopup('Please select the course first');
-        return;
-    }
-    
-    // UI Updates
-    document.getElementById('scanBtn').classList.add('hidden');
-    document.getElementById('stopScanBtn').classList.remove('hidden');
-    document.getElementById('scannerContainer').classList.remove('hidden');
-    document.getElementById('verificationResult').classList.add('hidden');
-    
-    const video = document.getElementById('scanner');
-    const cameraStatus = document.getElementById('cameraStatus');
-    cameraStatus.textContent = 'Initializing camera...';
-    cameraStatus.className = '';
-    
-    // Stop any existing stream
-    if (window.scannerStream) {
-        window.scannerStream.getTracks().forEach(track => track.stop());
-    }
-    
-    // Start new stream with better constraints
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        } 
-    })
-    .then(stream => {
-        window.scannerStream = stream;
-        video.srcObject = stream;
-        video.play();
-        scannerActive = true;
+qrFile.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    console.log('File selected:', file.name, file.type, file.size);
+
+    const selectedCourse = verifyCourseSelect.value;
+    if (!selectedCourse) {
+        // Clear the file input
+        event.target.value = '';
         
-        // Improved camera status handling
-        video.onplaying = () => {
-            cameraStatus.textContent = 'Scanning for QR codes...';
-            cameraStatus.className = 'scanning-status';
+        // Show modal
+        const modal = document.getElementById('customAlert');
+        const message = document.getElementById('alertMessage');
+        const closeButton = document.getElementById('alertCloseButton');
+        
+        // Set modal content
+        message.textContent = 'Please select a course first';
+        document.body.classList.add("modal-open");
+        modal.style.display = "flex";
+        
+        // Handle modal closing
+        const closeModal = () => {
+            modal.style.display = "none";
+            document.body.classList.remove("modal-open");
+            // Remove event listeners
+            closeButton.removeEventListener('click', closeModal);
+            document.removeEventListener('keydown', handleEscape);
         };
         
-        // Initialize QR code scanner with better configuration
-        const canvasElement = document.createElement('canvas');
-        const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
-        let lastScanTime = 0;
-        
-        function scanFrame() {
-            if (!scannerActive) return;
-            
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                // Throttle scanning to 300ms to reduce CPU usage
-                const now = Date.now();
-                if (now - lastScanTime < 300) {
-                    requestAnimationFrame(scanFrame);
-                    return;
-                }
-                lastScanTime = now;
-                
-                // Set canvas dimensions to match video
-                canvasElement.height = video.videoHeight;
-                canvasElement.width = video.videoWidth;
-                
-                // Draw video frame to canvas
-                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-                
-                // Get image data and scan for QR codes
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: 'dontInvert',
-                    canOverwriteImage: false
-                });
-                
-                if (code) {
-                    cameraStatus.textContent = 'QR code detected!';
-                    cameraStatus.className = 'success-message';
-                    
-                    // Add slight delay for user feedback
-                    setTimeout(() => {
-                        verifyQRCode(code.data);
-                        stopScanner();
-                    }, 500);
-                    return;
-                }
+        // Handle escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
             }
-            requestAnimationFrame(scanFrame);
+        };
+        
+        // Add event listeners
+        closeButton.addEventListener('click', closeModal);
+        document.addEventListener('keydown', handleEscape);
+        
+        // Close modal after 2 seconds
+        setTimeout(closeModal, 2000);
+        return;
+    }
+
+    // Hide initial elements
+    document.querySelector('#verify .form-group').classList.add('hidden');
+    document.querySelector('.decrypt-options').classList.add('hidden');
+
+    // Show verification container immediately
+    verificationResult.classList.remove('hidden');
+    verificationMessage.innerHTML = `
+        <div class="verification-status">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Processing QR code...</span>
+        </div>
+    `;
+
+    try {
+        const imageData = await readFileAsDataURL(file);
+        console.log('File read as data URL');
+        const qrCode = await scanQRCodeFromImage(imageData);
+        
+        console.log('QR Code Data:', qrCode);
+        
+        if (qrCode) {
+            try {
+                // Send the encrypted data to the server for decryption
+                const response = await fetch(`${API_BASE_URL}/attendance/verify-qr`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        encryptedData: qrCode,
+                        courseName: selectedCourse
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    verificationMessage.innerHTML = `
+                        <div class="student-info">
+                            <p><strong>QR Code Data:</strong></p>
+                            <p><strong>Student ID:</strong> ${data.student.studentId}</p>
+                            <p><strong>Full name:</strong> ${data.student.name}</p>
+                            <p><strong>Course:</strong> ${data.student.course}</p>
+                        </div>
+                        <div class="verification-status success">
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span>QR Code is valid</span>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Verification failed');
+                }
+            } catch (error) {
+                console.error('Error processing QR data:', error);
+                verificationMessage.innerHTML = `
+                    <div class="verification-status error">
+                        <i class="fa-solid fa-exclamation-circle"></i>
+                        <span>Error processing QR code</span>
+                    </div>
+                    <div class="verification-help">
+                        <p>Please make sure you're using a valid QR code generated by this system.</p>
+                    </div>
+                `;
+            }
+        } else {
+            verificationMessage.innerHTML = `
+                <div class="verification-status error">
+                    <i class="fa-solid fa-exclamation-circle"></i>
+                    <span>No QR code found in the image</span>
+                </div>
+                <div class="verification-help">
+                    <p>Please try again with a clearer image of your QR code.</p>
+                </div>
+            `;
         }
-        
-        scanFrame();
-    })
-    .catch(err => {
-        console.error('Camera error:', err);
-        cameraStatus.textContent = 'Camera access denied or not available';
-        cameraStatus.className = 'error-message';
-        
-        // Provide alternative instructions
-        const helpText = document.createElement('p');
-        helpText.className = 'camera-help';
-        helpText.textContent = 'Please ensure camera permissions are granted and try again.';
-        cameraStatus.appendChild(helpText);
-        
-        stopScanner();
+    } catch (error) {
+        console.error('QR verification error:', error);
+        verificationMessage.innerHTML = `
+            <div class="verification-status error">
+                <i class="fa-solid fa-exclamation-circle"></i>
+                <span>Error verifying QR code</span>
+            </div>
+            <div class="verification-help">
+                <p>Please try again with a valid QR code image.</p>
+            </div>
+        `;
+    }
+});
+
+// Helper function to read file as data URL
+function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
     });
 }
 
-// Stop Scanner
-function stopScanner() {
-    scannerActive = false;
-    document.getElementById('scanBtn').classList.remove('hidden');
-    document.getElementById('stopScanBtn').classList.add('hidden');
-    document.getElementById('scannerContainer').classList.add('hidden');
-    document.getElementById('cameraStatus').textContent = '';
-    
-    if (window.scannerStream) {
-        window.scannerStream.getTracks().forEach(track => track.stop());
-        window.scannerStream = null;
-    }
+// Helper function to scan QR code from image
+function scanQRCodeFromImage(imageData) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            console.log('Image loaded successfully');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Set canvas size to match QR code generation size
+            canvas.width = 300;
+            canvas.height = 300;
+            
+            // Draw image to canvas, maintaining aspect ratio
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            const x = (canvas.width - img.width * scale) / 2;
+            const y = (canvas.height - img.height * scale) / 2;
+            context.drawImage(img, x, y, img.width * scale, img.height * scale);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            console.log('Image dimensions:', canvas.width, 'x', canvas.height);
+            
+            // Use same settings as QR code generation
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert',
+                canOverwriteImage: false
+            });
+            
+            if (code) {
+                console.log('QR code found:', code);
+            } else {
+                console.log('No QR code found in image');
+            }
+            
+            resolve(code ? code.data : null);
+        };
+        img.onerror = (error) => {
+            console.error('Error loading image:', error);
+            resolve(null);
+        };
+        img.src = imageData;
+    });
 }
 
-function resetVerification() {
-    stopScanner();
-    document.getElementById('verificationResult').classList.add('hidden');
-    document.getElementById('fileInput').value = '';
-    document.getElementById('imagePreview').src = '';
-    document.getElementById('imagePreview').classList.add('hidden');
-    document.getElementById('imageProcessing').classList.add('hidden');
-    document.querySelector('.img-box').classList.remove('hidden');
-}
+// Reset verification
+newVerifyBtn.addEventListener('click', () => {
+    // Hide verification result
+    verificationResult.classList.add('hidden');
+    // Clear file input
+    qrFile.value = '';
+    
+    // Show initial elements
+    document.querySelector('#verify .form-group').classList.remove('hidden');
+    document.querySelector('.decrypt-options').classList.remove('hidden');
+});
+
+// Load courses when page loads
+loadCoursesForVerification();
 
 async function loadCourses() {
     try {

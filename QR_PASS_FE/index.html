@@ -3,65 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cryptography with a Twist</title>
+    <title>UAQR</title>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js" integrity="sha512-NcZdtrT77bJr4STcmsGAESr06BYGE8woZdSdEgqnpyqac7sugNO+Tr4bGwGF3MsnEkGKhU2KL2xh6Ec+BqsaHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <!-- Scripts for onload animations -->
+    <script defer src="./assets/scripts/utils/animation.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="./assets/css/index.css">
     <link rel="stylesheet" href="./assets/css/global.css">
-    <link rel="stylesheet" href="assets/css/index.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/blobAnimation.css">
 </head>
 <body>
-<div class="landing-page">
-    <div class="welcome-section">
-        <h2>Home</h2>
-        <h1>Secure Message Portal</h1>
-        <p class="subtitle">Encrypt your messages and share them securely via QR codes</p>
+    <!-- Navigation -->
+    <nav class="nav">
+         <img src="./assets/images/UAQR WHITE LOGO.png" alt="">
+    </nav>
+
+    <!-- Blob animated background -->
+    <div class="blob-outer-container">
+        <div class="blob-inner-container">
+            <div class="blob"></div>
+        </div>
     </div>
-    <div class="enter-main-page-container">
-        <p>Choose your role:</p>
-        <div class="button-container">
-            <a href="./userPage.html" class="cta-button" target="_blank">
-                <div class="get-started-container">
-                    <div class="col-1">
-                        <i class="material-icons">qr_code_2</i>
-                        <p>User Portal</p>
-                        <p>Generate secure QR codes for encrypted messages</p>
-                    </div>
-                    <div class="col-2">
-                        <i class="material-icons">arrow_forward</i>
-                    </div>
-                </div>
+
+    <!-- Header -->
+    <section class="hero-container">
+        <!-- Header texts -->
+        <h2>Your Smart Pass to Graduation,</h2>
+        <h2 class="gradient-text">One Scan Away.</h2>
+        <p>Built for graduates, trusted by schools.</p>
+    </section>
+
+    <!-- Cards -->
+    <section class="cards-container">
+        <div class="cards">
+            <a class="card" href="./userPage.html" >
+                <i class="fa-solid fa-qrcode"></i>
+                <h3>User Portal</h3>
+                <p>Register and generate QR codes.</p>
             </a>
 
-            <a href="./adminPage.html" class="cta-button" target="_blank">
-                <div class="get-started-container">
-                    <div class="col-1">
-                        <i class="material-icons">admin_panel_settings</i>
-                        <p>Admin Portal</p>
-                        <p>Access advanced steganography tools for secure communication</p>
-                    </div>
-                    <div class="col-2">
-                        <i class="material-icons">arrow_forward</i>
-                    </div>
-                </div>
+            <a class="card" href="./adminPage.html">
+                <i class="fa-solid fa-user-tie"></i>
+                <h3>Admin Portal</h3>
+                <p>Manage and view attendees.</p>
             </a>
         </div>
-    </div>
-    <div class="learn-encryption-container">
-        <p>Learn about encryption standards:</p>
-        <div class="grid-container">
-            <a href="https://cheapsslweb.com/blog/what-is-aes-128-bit-encryption/" target="_blank">
-                <div class="grid-content">AES-128</div>
-            </a>
-            <a href="https://www.rcdevs.com/aes192_encryption/" target="_blank">
-                <div class="grid-content">AES-192</div>
-            </a>
-            <a href="https://www.progress.com/blogs/use-aes-256-encryption-secure-data" target="_blank">
-                <div class="grid-content">AES-256</div>
-            </a>
-            <a href="https://www.techtarget.com/searchsecurity/definition/Data-Encryption-Standard" target="_blank">
-                <div class="grid-content">DES</div>
-            </a>
-        </div>
-    </div>
-</div>
+    </section>
 </body>
 </html>
