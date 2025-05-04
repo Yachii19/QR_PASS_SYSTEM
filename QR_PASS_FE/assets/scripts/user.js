@@ -294,7 +294,7 @@ qrFile.addEventListener('change', async (event) => {
         if (qrCode) {
             try {
                 // Send the encrypted data to the server for decryption
-                const response = await fetch(`${API_BASE_URL}/attendance/verify-qr`, {
+                const response = await fetch(`${API_BASE_URL}/attendance/decrypt-qr`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

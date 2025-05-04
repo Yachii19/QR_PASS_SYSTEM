@@ -100,6 +100,57 @@ exports.verifyQR = async (req, res) => {
     }
 };
 
+exports.decryptQR = async (req, res) => {
+    try {
+        const { encryptedData, courseName } = req.body;
+        
+        if (!encryptedData || !courseName) {
+            return errorResponse(res, 400, 'All fields (encryptedData, courseName) are required');
+        }
+
+        const course = await Course.findOne({ name: courseName });
+        if (!course) {
+            return errorResponse(res, 404, 'Course not found');
+        }
+
+        let decryptedString;
+        try {
+            const bytes = CryptoJS.AES.decrypt(encryptedData, course.encryption_key);
+            decryptedString = bytes.toString(CryptoJS.enc.Utf8);
+            
+            if (!decryptedString) {
+                return errorResponse(res, 401, 'Invalid QR code - decryption failed');
+            }
+        } catch (decryptError) {
+            return errorResponse(res, 401, 'Invalid QR code format');
+        }
+
+        let decryptedData;
+        try {
+            decryptedData = JSON.parse(decryptedString);
+        } catch (parseError) {
+            return errorResponse(res, 400, 'Invalid QR code format - could not parse decrypted data');
+        }
+
+        if (!decryptedData.student_id || !decryptedData.name || !decryptedData.course) {
+            return errorResponse(res, 400, 'Invalid QR code format - missing required fields');
+        }
+
+        // Return the decrypted data without recording attendance
+        res.json({
+            success: true,
+            student: {
+                studentId: decryptedData.student_id,
+                name: decryptedData.name,
+                course: decryptedData.course
+            }
+        });
+        
+    } catch (error) {
+        console.error('Decryption error:', error);
+        errorResponse(res, 500, 'Internal server error during decryption');
+    }
+};
 
 exports.getAttendances = async (req, res) => {
     try {

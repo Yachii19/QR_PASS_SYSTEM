@@ -446,6 +446,10 @@ hr {
         padding: 8px;
     }
 
+    img{
+        width: 30px;
+    }
+
     .main-container {
         padding: 1.5rem;
         width: 100%;
