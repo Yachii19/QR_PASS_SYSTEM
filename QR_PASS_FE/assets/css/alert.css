@@ -40,9 +40,9 @@
     width: 100px;
     padding: 10px 0;
     cursor: pointer;
-    border: 1px solid #323741;
-    background-color: #000;
-    color: #FFFFFF;
+    border: none;
+    background-color: #fff;
+    color: #000;
     font-weight: 700;
     border-radius: 6px;
     transition: background-color 0.3s ease, opacity 0.3s ease;

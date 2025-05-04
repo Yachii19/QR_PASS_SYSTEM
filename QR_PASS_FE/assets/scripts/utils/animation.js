@@ -9,3 +9,4 @@ window.onload = function () {
       delay: 0.5
     });
 };
+

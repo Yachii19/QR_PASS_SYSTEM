@@ -22,6 +22,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* border: 1px solid red; */
+    margin-bottom: 1.5rem;
+    height: 50px;
     /* margin-bottom: 20px; */
 }
 
@@ -29,7 +32,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     display: flex;;
     align-items: center;
     gap: 10px;
-    margin-bottom: 1.5rem;
 }
 
 .header-title img{
@@ -81,12 +83,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     margin-bottom: 20px;
     border-radius: .5rem;
     border: 1px dashed #323741;
+
 }
 
 .form-row {
     display: flex;
     gap: 15px;
-    margin-bottom: 15px;
+}
+
+.form-group{
+    width: 100%;
 }
 
 label {
@@ -100,12 +106,16 @@ input, select {
     width: 100%;
     padding: 10px;
     border: 1px solid #323741;
-    background-color: #000000;
+    background-color: #23242A;
     color: #FFFFFF;
     border-radius: 5px;
     height: 50px;
 }
 
+
+
+.scan-btn,
+.filter-btn,
 .primary-btn {
     background-color: #fff;
     color: #000;
@@ -113,30 +123,29 @@ input, select {
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease, opacity 0.3s ease;   
+    font-weight: 700;
+    transition: all 0.3s ease;
 }
 
-.filter-btn,
-.primary-btn {
-    background-color: #191C24;
+.login-btn:hover,
+.filter-btn:hover, 
+.primary-btn:hover{
+    background-color: #536AED;
     color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease, opacity 0.3s ease;
-}
+    transform: translateY(-2px);
 
-.filter-btn:hover,
-.primary-btn:hover {
-    background-color: #323741;
+    box-shadow: 0 0 0 5px #3b83f65f;
+}
+.login-btn:active,
+.filter-btn:active, 
+.primary-btn:active{
+    transform: translateY(0px);
+
 }
 
 #attendance-records{
     background-color: #000;
-    padding: 3rem;
+    padding: 1.5rem;
     border-radius: .5rem;
     border: 1px solid #323741;
 }
@@ -295,6 +304,7 @@ img{
     cursor: pointer;
     margin-top: 10px;
     height: 50px;
+    transition: 0.3s ease;
 }
 
 .login-error {
@@ -358,7 +368,6 @@ img{
 .action-buttons {
     display: flex;
     gap: 10px;
-    margin-top: 15px;
 }
 
 .success-btn {
@@ -505,6 +514,10 @@ img{
         gap: 10px;
     }
     
+    .filter-btn{
+        width: 100%;
+    }
+    
     #attendanceTable, .courses-table {
         font-size: 14px;
     }
@@ -539,16 +552,19 @@ img{
 }
 
 .success-message {
-    color: #2E7D32;
+    background-color: #2E7D32;
+    color: #fff;
     border-radius: .2rem;
     margin-bottom: 1rem;
+    font-size: 12px;
+
 }
 
 .error-message {
     background-color: #CE3333;
     padding: .8rem;
     font-size: 12px;
-    color: white;
+    color: #fff;
 }
 
 .password-input-container {
@@ -661,8 +677,32 @@ img{
 
 /* Mobile View (up to 767px) */
 @media (max-width: 767px) {
-    img{
+    .header-title img{
         width: 30px;
+    }
+
+    .student-info{
+        font-size: 0.6rem;
+    }
+
+    .info-message{
+        font-size: 0.8rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .info-message + p,
+    .info-message + p + p {
+        font-size: 0.6rem;
+    }
+
+    .verify-time > em {
+        font-size: 0.5rem;
+    }
+
+    .stop-scan-btn{
+        width: 100%;
+        height: 35px;
+        font-size: 0.6rem;
     }
 
     .container {
@@ -674,15 +714,15 @@ img{
     }
 
     .tabs {
-        height: 26px;
-        gap: 4px;
+        height: 35px;
+        gap: 3px;
         margin-bottom: 0.5rem;
     }
 
     .tab {
-        font-size: 0.6rem;
-        padding: 0.15rem 0.25rem;
-        gap: 2px;
+        font-size: 0.5rem;
+        padding: 0.15rem 0.3rem;
+        gap: 5px;
     }
 
     .tab i {
@@ -691,7 +731,7 @@ img{
 
     .logout-btn {
         font-size: 0.65rem;
-        padding: 0.2rem 0.4rem;
+        padding: 0.5rem 0.8rem;
     }
 
     .logout-btn i {
@@ -714,13 +754,13 @@ img{
 
     label {
         font-size: 0.65rem;
-        margin-bottom: 0.2rem;
     }
 
     input, select {
         height: 40px;
         font-size: 0.65rem;
         padding: 0.2rem 0.4rem;
+        
     }
 
     .primary-btn,
@@ -730,6 +770,7 @@ img{
         font-size: 0.65rem;
         padding: 0.2rem 0.4rem;
         height: 40px;
+        width: 100%;
     }
 
     .courses-table,
@@ -795,7 +836,7 @@ img{
 
     .login-container {
         padding: 2rem;
-        max-width: 300px;
+        max-width: 360px;
     }
 
     .login-title {
@@ -805,6 +846,12 @@ img{
 
     .form-group {
         margin-bottom: 0.6rem;
+    }
+
+    .scan-btn{
+        height: 35px;
+        font-size: 0.6rem;
+        width: 100%;
     }
 
     .login-btn {
@@ -1065,7 +1112,7 @@ img{
 /* QR Verification Styles */
 #verify {
     background-color: #000;
-    padding: 3rem;
+    padding: 1.5rem;
     border-radius: .5rem;
     border: 1px solid #323741;
 }
@@ -1090,12 +1137,22 @@ img{
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.3s ease, opacity 0.3s ease;
+    transition:  0.3s ease;
 }
 
-.scan-btn:hover,
+.scan-btn:hover {
+    background-color: #536AED;
+    color: #fff;
+    transform: translateY(-2px);
+
+    box-shadow: 0 0 0 5px #3b83f65f;
+}
 .stop-scan-btn:hover {
-    background-color: #323741;
+    background-color: #d9534f;
+    color: #fff;
+    transform: translateY(-2px);
+
+    box-shadow: 0 0 0 5px #f6673b5f;
 }
 
 #scannerContainer {
@@ -1217,3 +1274,4 @@ img{
 .scanning-status {
     color: #4caf50;
 }
+
