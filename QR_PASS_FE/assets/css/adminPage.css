@@ -661,6 +661,10 @@ img{
 
 /* Mobile View (up to 767px) */
 @media (max-width: 767px) {
+    img{
+        width: 30px;
+    }
+
     .container {
         padding: 8px;
     }
