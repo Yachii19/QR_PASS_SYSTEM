@@ -131,6 +131,7 @@ select:hover {
     background-color: #2980b9;
 }
 
+.scan-btn,
 #newVerifyBtn,
 .encrypt-btn,
 .download-qr-btn,
@@ -144,17 +145,32 @@ select:hover {
     font-weight: 700;
     border-radius: 5px;
     border: none;
-    transition: opacity 0.3s ease;
+    transition: 0.3s ease;
     margin-bottom: 1rem;
     cursor: pointer;
     height: 50px;
 }
 
+.scan-btn:hover,
+#newVerifyBtn:hover,
 .encrypt-btn:hover,
 .download-qr-btn:hover,
 .copy-key-btn:hover,
 #newScanBtn:hover {
-    opacity: 0.7;
+    background-color: #536AED;
+    color: #fff;
+    transform: translateY(-2px);
+
+    box-shadow: 0 0 0 5px #3b83f65f;
+}
+
+.scan-btn:active,
+#newVerifyBtn:active,
+.encrypt-btn:active,
+.download-qr-btn:active,
+.copy-key-btn:active,
+#newScanBtn:active {
+    transform: translateY(0px);
 }
 
 hr {
@@ -217,24 +233,6 @@ hr {
     flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 1rem;
-}
-
-.decrypt-options > button {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    color: #212121;
-    background-color: #FFFFFF;
-    font-weight: 700;
-    border-radius: 5px;
-    transition: opacity 0.3s ease;
-    cursor: pointer;
-    height: 50px;
-    margin-bottom: 1rem;
-}
-
-.decrypt-options > button:hover {
-    opacity: 0.7;
 }
 
 #stopScanBtn {
@@ -392,6 +390,22 @@ hr {
     font-size: 14px;
 }
 
+.success{
+    background-color: #2E7D32;
+    color: #fff;
+    border-radius: .2rem;
+    margin-bottom: 1rem;
+    font-size: 12px;
+    padding: 10px;
+}
+.error{
+    background-color: #977a22;
+    padding: .8rem;
+    font-size: 12px;
+    color: #fff;
+    border-radius: .2rem;
+}
+
 #verificationMessage {
     margin-bottom: 1rem;
 }
@@ -468,13 +482,13 @@ hr {
     }
 
     .tab {
-        font-size: 0.7rem;
-        padding: 0.4rem 0.6rem;
+        font-size: 0.5rem;
+        padding: 0.4rem 0.7rem;
         gap: 6px;
     }
 
     .tab i {
-        font-size: 0.8rem;
+        font-size: 0.6rem;
     }
 
     .tab-content {
@@ -487,7 +501,7 @@ hr {
     }
 
     label {
-        font-size: 0.7rem;
+        font-size: 0.5rem;
         margin-bottom: 6px;
     }
 
