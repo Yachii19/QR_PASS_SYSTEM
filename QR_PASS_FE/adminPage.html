@@ -98,7 +98,12 @@
                     </div>
                     <div class="form-group">
                         <label for="courseKey">Encryption Key (min 16 chars)</label>
-                        <input type="text" id="courseKey" placeholder="Enter encryption key">
+                        <div class="key-input-container">
+                            <input type="text" id="courseKey" placeholder="Enter encryption key">
+                            <button id="generateKeyBtn" class="generate-key-btn" type="button">
+                                <i class="fa-solid fa-key"></i> Generate Key
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="action-buttons">
@@ -146,7 +151,16 @@
                         </select>
                     </div>
                 </div>
-                <button id="filterBtn" class="filter-btn">Filter Attendances</button>
+                <div class="attendance-btn-container">
+                    <button id="filterBtn" class="filter-btn">Filter Attendances</button>
+
+                    <button id="downloadPdfBtn" class="filter-btn">Download Attendance</button>
+                    
+                    <button id="clearAttendanceBtn" class="danger-btn">
+                        <i class="fa-solid fa-trash"></i>
+                        Clear Attendance Records
+                    </button>
+                </div>
             </div>
             
             <div id="attendanceResults">
@@ -261,3 +275,4 @@
     <script type="module" src="./assets/scripts/admin.js"></script>
 </body>
 </html>
+

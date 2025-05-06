@@ -112,8 +112,6 @@ input, select {
     height: 50px;
 }
 
-
-
 .scan-btn,
 .filter-btn,
 .primary-btn {
@@ -141,6 +139,11 @@ input, select {
 .primary-btn:active{
     transform: translateY(0px);
 
+}
+
+.attendance-btn-container {
+    display: flex;
+    gap: 20px;
 }
 
 #attendance-records{
@@ -492,12 +495,71 @@ img{
     margin-bottom: 20px;
 }
 
+.modal-actions {
+    display: flex;
+    gap: 20px;
+}
+
 .close-modal {
     background: none;
     border: none;
     color: #FFFFFF;
     font-size: 24px;
     cursor: pointer;
+}
+
+/* Add to your adminPage.css */
+.warning-text {
+    color: #FFC107;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.warning-text i {
+    font-size: 18px;
+}
+
+.danger-btn {
+    background-color: transparent;
+    color: #FFFFFF;
+    border: 1px solid #323741;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.danger-btn:hover {
+    background-color: #d9534f;
+    border-color: #d9534f;
+}
+
+.danger-btn i {
+    font-size: 14px;
+}
+
+.attendance-btn-container {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+/* Loading spinner for the button */
+.fa-spinner.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* desktops */
@@ -670,6 +732,68 @@ img{
 .page-info {
     color: #FFFFFF;
     font-size: 0.9rem;
+}
+
+/* Key Input Container Styles */
+.key-input-container {
+    position: relative;
+    display: flex;
+    gap: 10px;
+}
+
+.key-input-container input {
+    flex: 1;
+    padding-right: 40px;
+}
+
+.generate-key-btn {
+    background-color: #536AED;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.generate-key-btn:hover {
+    background-color: #3a56d8;
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 5px #3b83f65f;
+}
+
+.generate-key-btn:active {
+    transform: translateY(0);
+}
+
+.generate-key-btn i {
+    font-size: 14px;
+}
+
+.key-success-message {
+    position: absolute;
+    right: 10px;
+    top: 150%;
+    transform: translateY(-50%);
+    background-color: rgba(46, 125, 50, 0.2);
+    color: #4CAF50;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* Mobile View (up to 767px) */
@@ -865,6 +989,31 @@ img{
 
     .login-error i {
         font-size: 0.75rem;
+    }
+
+    .attendance-btn-container {
+        flex-direction: column;
+    }
+    
+    .attendance-btn-container button {
+        width: 100%;
+    }
+
+    .key-input-container {
+        flex-direction: column;
+    }
+    
+    .generate-key-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .key-success-message {
+        position: static;
+        transform: none;
+        margin-top: 5px;
+        justify-content: center;
+        width: 100%;
     }
 }
 

@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
@@ -48,12 +49,17 @@ process.on('SIGTERM', () => {
   });
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('SIGINT received. Shutting down gracefully...');
-  server.close(() => {
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
+  try {
+    await mongoose.connection.close(); // Update to use async/await
+    console.log('MongoDB connection closed');
+    server.close(() => {
+      console.log('Server closed');
       process.exit(0);
     });
-  });
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
 });

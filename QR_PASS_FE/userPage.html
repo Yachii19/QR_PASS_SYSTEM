@@ -41,7 +41,7 @@
 
     <!-- Main Container -->
     <main class="main-container">
-        <h1 class="title">Graduation QR Pass System</h1>
+        <h1 class="title">QR Pass System</h1>
     
         <div class="tabs">
             <div class="tab active" data-tab="register">
@@ -52,9 +52,14 @@
                 <i class="fa-solid fa-qrcode"></i>
                 Generate QR
             </div>
-            <div class="tab" data-tab="verify">
-                <i class="fa-solid fa-check-circle"></i>
-                Verify QR
+          
+            <div class="tab" data-tab="parent-register">
+                <i class="fa-solid fa-user-plus"></i>
+                Register Parent
+            </div>
+            <div class="tab" data-tab="parent-generate">
+                <i class="fa-solid fa-qrcode"></i>
+                Generate Parent QR
             </div>
         </div>
     
@@ -117,33 +122,83 @@
                 <p>Present this QR code at the graduation venue for verification</p>
             </div>
         </div>
-    
-        <!-- Verify QR Tab -->
-        <div id="verify" class="tab-content">
-            <div class="form-group">
-                <label for="verifyCourse">Select Course</label>
-                <select id="verifyCourse">
-                    <option value="">Select a course</option>
-                </select>
-            </div>
-            
-            <div class="decrypt-options">
-                <input type="file" id="qrFile" accept="image/*" class="hidden">
-                <button class="scan-btn" id="uploadBtn">
-                    <i class="fa-solid fa-upload"></i>
-                    Upload QR Code
-                </button>
-            </div>
-            
-            <div id="verificationResult" class="hidden">
-                <div id="verificationMessage"></div>
-                <button id="newVerifyBtn" class="primary-btn">
-                    <i class="fa-solid fa-qrcode"></i>
-                    Verify Another QR Code
-                </button>
+        
+        <!-- Parent Registration Tab -->
+        <div id="parent-register" class="tab-content">
+            <div class="registration-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="parentStudentId">Child's Student ID</label>
+                        <input type="number" id="parentStudentId" placeholder="Enter child's student ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="parentName">Parent Name</label>
+                        <input type="text" id="parentName" placeholder="Enter parent name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="parentRelation">Relationship to Child</label>
+                    <select id="parentRelation" class="course-select">
+                        <option value="Father">Father</option>
+                        <option value="Mother">Mother</option>
+                        <option value="Guardian">Guardian</option>
+                    </select>
+                </div>
+
+                <button id="registerParentBtn" class="encrypt-btn">Register Parent</button>
+
+                <div id="parentRegistrationStatus" class="hidden"></div>
             </div>
         </div>
-    
+
+        <!-- Parent QR Generation Tab -->
+        <div id="parent-generate" class="tab-content">
+            <div class="form-group">
+                <label for="parentQrStudentId">Child's Student ID</label>
+                <input type="text" id="parentQrStudentId" placeholder="Enter child's student ID">
+            </div>
+
+            <div class="form-group">
+                <label for="parentQrName">Parent Name</label>
+                <input type="text" id="parentQrName" placeholder="Enter registered parent name">
+            </div>
+
+            <button id="generateParentQrBtn" class="encrypt-btn">Generate Parent QR Pass</button>
+
+            <hr>
+
+            <div id="parentQrCodeContainer" class="hidden">
+                <div class="parent-qr-border">
+                    <h3>Parent Graduation QR Pass</h3>
+                    <canvas id="parentQrCodeCanvas"></canvas>
+                    <div class="qr-actions">
+                        <button id="downloadParentBtn" class="download-qr-btn">
+                            <i class="fa-solid fa-download"></i>
+                            Download QR Code
+                        </button>
+                    </div>
+                </div>
+                <p>Present this QR code at the graduation venue for verification</p>
+            </div>
+        </div>
+
+        <!-- Verification Modal -->
+        <div id="verificationModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Verify Student ID</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <p>Please re-enter your Student ID to confirm:</p>
+                <input type="number" id="verifyStudentId" placeholder="Enter student ID again">
+                <div class="modal-actions">
+                    <button id="confirmVerifyBtn" class="encrypt-btn">Confirm</button>
+                    <button id="cancelVerifyBtn" class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Custom Alert -->
         <div id="customAlert" class="custom-alert">
             <div class="alert-content">

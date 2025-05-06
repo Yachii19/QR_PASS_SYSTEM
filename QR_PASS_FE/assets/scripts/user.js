@@ -14,16 +14,16 @@ document.querySelectorAll('.tab').forEach(tab => {
 // API base URL
 const API_BASE_URL = 'http://localhost:4000/api';
 
-// Registration
-document.getElementById('registerBtn').addEventListener('click', registerStudent);
+// Store the original student ID for verification
+let originalStudentId = '';
 
-async function registerStudent() {
+// Registration
+document.getElementById('registerBtn').addEventListener('click', () => {
     const studentId = document.getElementById('studentId').value.trim();
     const name = document.getElementById('studentName').value.trim();
     const course = document.getElementById('registerCourse').value;
-    
 
-     if (studentId.length !== 10) {
+    if (studentId.length !== 10) {
         alertPopup('Student ID must be exactly 10 characters long');
         return;
     }
@@ -32,6 +32,72 @@ async function registerStudent() {
         alertPopup('Please fill in all fields');
         return;
     }
+
+    // Store the original student ID
+    originalStudentId = studentId;
+    
+    // Show verification modal
+    showVerificationModal();
+});
+
+// Verification Modal Elements
+const verificationModal = document.getElementById('verificationModal');
+const verifyStudentIdInput = document.getElementById('verifyStudentId');
+const confirmVerifyBtn = document.getElementById('confirmVerifyBtn');
+const cancelVerifyBtn = document.getElementById('cancelVerifyBtn');
+const closeModalBtn = document.querySelector('.close-modal');
+
+// Show verification modal
+function showVerificationModal() {
+    verificationModal.style.display = 'flex';
+    verifyStudentIdInput.value = '';
+    verifyStudentIdInput.focus();
+}
+
+// Hide verification modal
+function hideVerificationModal() {
+    verificationModal.style.display = 'none';
+}
+
+// Close modal when clicking X button
+closeModalBtn.addEventListener('click', hideVerificationModal);
+
+// Close modal when clicking cancel button
+cancelVerifyBtn.addEventListener('click', hideVerificationModal);
+
+// Close modal when clicking outside modal content
+verificationModal.addEventListener('click', (e) => {
+    if (e.target === verificationModal) {
+        hideVerificationModal();
+    }
+});
+
+// Confirm verification
+confirmVerifyBtn.addEventListener('click', () => {
+    const verifiedStudentId = verifyStudentIdInput.value.trim();
+    
+    if (!verifiedStudentId) {
+        alertPopup('Please enter your Student ID');
+        return;
+    }
+    
+    if (verifiedStudentId !== originalStudentId) {
+        alertPopup('Student ID does not match. Please try again.');
+        verifyStudentIdInput.value = '';
+        verifyStudentIdInput.focus();
+        return;
+    }
+    
+    // If verification succeeds, proceed with registration
+    hideVerificationModal();
+    proceedWithRegistration();
+});
+
+// The actual registration function (previously registerStudent)
+async function proceedWithRegistration() {
+    const studentId = originalStudentId;
+    const name = document.getElementById('studentName').value.trim();
+    const course = document.getElementById('registerCourse').value;
     
     const registerBtn = document.getElementById('registerBtn');
     registerBtn.disabled = true;
@@ -184,250 +250,8 @@ function downloadQRCode() {
     link.href = tempCanvas.toDataURL('image/png');
     link.click();
 }
-// QR Verification
-const verifyCourseSelect = document.getElementById('verifyCourse');
-const uploadBtn = document.getElementById('uploadBtn');
-const qrFile = document.getElementById('qrFile');
-const verificationResult = document.getElementById('verificationResult');
-const verificationMessage = document.getElementById('verificationMessage');
-const newVerifyBtn = document.getElementById('newVerifyBtn');
 
-// Load courses for verification dropdown
-async function loadCoursesForVerification() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/courses/full`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            // Clear existing options except the first one
-            while (verifyCourseSelect.options.length > 1) {
-                verifyCourseSelect.remove(1);
-            }
-            
-            // Add courses from backend
-            data.courses.forEach(course => {
-                const option = document.createElement('option');
-                option.value = course.name;
-                option.textContent = course.name;
-                verifyCourseSelect.appendChild(option);
-            });
-        } else {
-            throw new Error(data.error || 'Failed to load courses');
-        }
-    } catch (error) {
-        console.error('Load courses error:', error);
-        showStatusMessage('courseStatus', 'Failed to load courses', false);
-    }
-}
 
-// Handle file upload
-uploadBtn.addEventListener('click', () => {
-    qrFile.click();
-});
-
-qrFile.addEventListener('change', async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    console.log('File selected:', file.name, file.type, file.size);
-
-    const selectedCourse = verifyCourseSelect.value;
-    if (!selectedCourse) {
-        // Clear the file input
-        event.target.value = '';
-        
-        // Show modal
-        const modal = document.getElementById('customAlert');
-        const message = document.getElementById('alertMessage');
-        const closeButton = document.getElementById('alertCloseButton');
-        
-        // Set modal content
-        message.textContent = 'Please select a course first';
-        document.body.classList.add("modal-open");
-        modal.style.display = "flex";
-        
-        // Handle modal closing
-        const closeModal = () => {
-            modal.style.display = "none";
-            document.body.classList.remove("modal-open");
-            // Remove event listeners
-            closeButton.removeEventListener('click', closeModal);
-            document.removeEventListener('keydown', handleEscape);
-        };
-        
-        // Handle escape key
-        const handleEscape = (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        };
-        
-        // Add event listeners
-        closeButton.addEventListener('click', closeModal);
-        document.addEventListener('keydown', handleEscape);
-        
-        // Close modal after 2 seconds
-        setTimeout(closeModal, 2000);
-        return;
-    }
-
-    // Hide initial elements
-    document.querySelector('#verify .form-group').classList.add('hidden');
-    document.querySelector('.decrypt-options').classList.add('hidden');
-
-    // Show verification container immediately
-    verificationResult.classList.remove('hidden');
-    verificationMessage.innerHTML = `
-        <div class="verification-status">
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>Processing QR code...</span>
-        </div>
-    `;
-
-    try {
-        const imageData = await readFileAsDataURL(file);
-        console.log('File read as data URL');
-        const qrCode = await scanQRCodeFromImage(imageData);
-        
-        console.log('QR Code Data:', qrCode);
-        
-        if (qrCode) {
-            try {
-                // Send the encrypted data to the server for decryption
-                const response = await fetch(`${API_BASE_URL}/attendance/decrypt-qr`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        encryptedData: qrCode,
-                        courseName: selectedCourse
-                    })
-                });
-
-                const data = await response.json();
-                
-                if (response.ok) {
-                    verificationMessage.innerHTML = `
-                        <div class="student-info">
-                            <p><strong>QR Code Data:</strong></p>
-                            <p><strong>Student ID:</strong> ${data.student.studentId}</p>
-                            <p><strong>Full name:</strong> ${data.student.name}</p>
-                            <p><strong>Course:</strong> ${data.student.course}</p>
-                        </div>
-                        <div class="verification-status success">
-                            <i class="fa-solid fa-check-circle"></i>
-                            <span>QR Code is valid</span>
-                        </div>
-                    `;
-                } else {
-                    throw new Error(data.error || 'Verification failed');
-                }
-            } catch (error) {
-                console.error('Error processing QR data:', error);
-                verificationMessage.innerHTML = `
-                    <div class="verification-status error">
-                        <i class="fa-solid fa-exclamation-circle"></i>
-                        <span>Error processing QR code</span>
-                    </div>
-                    <div class="verification-help">
-                        <p>Please make sure you're using a valid QR code generated by this system.</p>
-                    </div>
-                `;
-            }
-        } else {
-            verificationMessage.innerHTML = `
-                <div class="verification-status error">
-                    <i class="fa-solid fa-exclamation-circle"></i>
-                    <span>No QR code found in the image</span>
-                </div>
-                <div class="verification-help">
-                    <p>Please try again with a clearer image of your QR code.</p>
-                </div>
-            `;
-        }
-    } catch (error) {
-        console.error('QR verification error:', error);
-        verificationMessage.innerHTML = `
-            <div class="verification-status error">
-                <i class="fa-solid fa-exclamation-circle"></i>
-                <span>Error verifying QR code</span>
-            </div>
-            <div class="verification-help">
-                <p>Please try again with a valid QR code image.</p>
-            </div>
-        `;
-    }
-});
-
-// Helper function to read file as data URL
-function readFileAsDataURL(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-// Helper function to scan QR code from image
-function scanQRCodeFromImage(imageData) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            console.log('Image loaded successfully');
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            
-            // Set canvas size to match QR code generation size
-            canvas.width = 300;
-            canvas.height = 300;
-            
-            // Draw image to canvas, maintaining aspect ratio
-            const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-            const x = (canvas.width - img.width * scale) / 2;
-            const y = (canvas.height - img.height * scale) / 2;
-            context.drawImage(img, x, y, img.width * scale, img.height * scale);
-            
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            console.log('Image dimensions:', canvas.width, 'x', canvas.height);
-            
-            // Use same settings as QR code generation
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: 'dontInvert',
-                canOverwriteImage: false
-            });
-            
-            if (code) {
-                console.log('QR code found:', code);
-            } else {
-                console.log('No QR code found in image');
-            }
-            
-            resolve(code ? code.data : null);
-        };
-        img.onerror = (error) => {
-            console.error('Error loading image:', error);
-            resolve(null);
-        };
-        img.src = imageData;
-    });
-}
-
-// Reset verification
-newVerifyBtn.addEventListener('click', () => {
-    // Hide verification result
-    verificationResult.classList.add('hidden');
-    // Clear file input
-    qrFile.value = '';
-    
-    // Show initial elements
-    document.querySelector('#verify .form-group').classList.remove('hidden');
-    document.querySelector('.decrypt-options').classList.remove('hidden');
-});
-
-// Load courses when page loads
-loadCoursesForVerification();
 
 async function loadCourses() {
     try {
@@ -451,7 +275,6 @@ async function populateCourseSelects() {
     const selects = [
         'registerCourse',
         'qrCourse',
-        'verifyCourse',
     ];
     
     // Show loading state
@@ -497,6 +320,167 @@ async function populateCourseSelects() {
             select.disabled = false;
         }
     });
+}
+
+// Add these new event listeners
+document.getElementById('registerParentBtn').addEventListener('click', registerParent);
+document.getElementById('generateParentQrBtn').addEventListener('click', generateParentQR);
+document.getElementById('downloadParentBtn').addEventListener('click', downloadParentQRCode);
+
+// Parent Registration Function
+async function registerParent() {
+    const studentId = document.getElementById('parentStudentId').value.trim();
+    const parentName = document.getElementById('parentName').value.trim();
+    const relation = document.getElementById('parentRelation').value;
+    
+    if (studentId.length !== 10) {
+        alertPopup('Student ID must be exactly 10 characters long');
+        return;
+    }
+
+    if (!studentId || !parentName || !relation) {
+        alertPopup('Please fill in all fields');
+        return;
+    }
+    
+    const registerBtn = document.getElementById('registerParentBtn');
+    registerBtn.disabled = true;
+    registerBtn.textContent = 'Registering...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/register-parent`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                studentId,
+                parentName,
+                relation
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alertPopup('Parent registered successfully!');
+            // Clear form
+            document.getElementById('parentStudentId').value = '';
+            document.getElementById('parentName').value = '';
+            document.getElementById('parentRelation').value = 'Father';
+        } else {
+            alertPopup(data.error || 'Parent registration failed');
+        }
+    } catch (error) {
+        console.error('Parent registration error:', error);
+        alertPopup('Parent registration failed. Please try again.');
+    } finally {
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Register Parent';
+    }
+}
+
+// Parent QR Generation Function
+async function generateParentQR() {
+    const studentId = document.getElementById('parentQrStudentId').value.trim();
+    const parentName = document.getElementById('parentQrName').value.trim();
+    
+    if (studentId.length !== 10) {
+        alertPopup('Student ID must be exactly 10 characters long');
+        return;
+    }
+
+    if (!studentId || !parentName) {
+        alertPopup('Please enter student ID and parent name');
+        return;
+    }
+    
+    const generateBtn = document.getElementById('generateParentQrBtn');
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generating...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/generate-parent-qr`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                studentId,
+                parentName
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Store parent data for download
+            document.getElementById('parentQrCodeCanvas').dataset.studentId = studentId;
+            document.getElementById('parentQrCodeCanvas').dataset.parentName = parentName;
+            
+            // Clear previous QR code
+            const canvas = document.getElementById('parentQrCodeCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Set canvas size explicitly
+            canvas.width = 300;
+            canvas.height = 300;
+            
+            // Generate QR code directly to canvas
+            QRCode.toCanvas(canvas, data.encryptedData, {
+                width: 250,
+                margin: 2,
+                errorCorrectionLevel: 'H'
+            }, (error) => {
+                if (error) {
+                    console.error('Parent QR generation error:', error);
+                    alertPopup('Failed to generate parent QR code');
+                } else {
+                    document.getElementById('parentQrCodeContainer').classList.remove('hidden');
+                }
+            });
+        } else {
+            alertPopup(data.error || 'Failed to generate parent QR code');
+        }
+    } catch (error) {
+        console.error('Parent QR generation error:', error);
+        alertPopup('Failed to generate parent QR code. Please try again.');
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Generate Parent QR Pass';
+    }
+}
+
+// Parent QR Download Function
+function downloadParentQRCode() {
+    const canvas = document.getElementById('parentQrCodeCanvas');
+    if (!canvas) return;
+
+    const studentId = canvas.dataset.studentId || '';
+    const parentName = canvas.dataset.parentName || 'parent';
+    
+    let filename = 'ParentGraduationPass';
+    if (studentId) filename += `_${studentId}`;
+    if (parentName) {
+        const cleanName = parentName.replace(/[^\w\s]/gi, '').replace(/\s+/g, '_');
+        filename += `_${cleanName}`;
+    }
+    filename += '.png';
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    tempCtx.fillStyle = '#ffffff';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(canvas, 0, 0);
+
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = tempCanvas.toDataURL('image/png');
+    link.click();
 }
 
 // Call this function when the page loads
