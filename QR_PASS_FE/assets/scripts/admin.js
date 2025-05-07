@@ -1,7 +1,7 @@
 import alertPopup from "./utils/alert.js";
 
 // API base URL
-const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com';
+const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com/api';
 let adminToken = null;
 let currentEditingCourseId = null;
 let currentDeletingCourseId = null;
