@@ -198,6 +198,8 @@ hr {
     padding: 15px;
     margin-bottom: 10px;
     min-width: auto;
+    border: 1px solid #404040;
+    width: 100%;
 }
 
 .qr-border > h3 {
@@ -420,14 +422,15 @@ hr {
 
 /* Add these styles */
 #parentQrCodeCanvas {
-    width: 200px;
-    height: 200px;
+    width: 250px;
+    height: 250px;
     background-color: white;
     border: 1px solid #ddd;
 }
 
 #parentQrCodeContainer > p {
     font-size: 10px;
+    text-align: center;
 }
 
 .parent-qr-border {
@@ -440,6 +443,11 @@ hr {
     margin-bottom: 10px;
     min-width: auto;
     border: 1px solid #404040;
+}
+
+.parent-qr-border > h3{
+    font-size: 10px;
+    margin-bottom: 10px;
 }
 
 /* Add these styles */
@@ -478,15 +486,15 @@ hr {
 
     .tabs {
         height: 35px;
-        gap: 8px;
+        gap: 4px;
         margin-bottom: 1rem;
         padding-bottom: 3px;
     }
 
     .tab {
-        font-size: 0.5rem;
-        padding: 0.4rem 0.7rem;
-        gap: 6px;
+        font-size: 0.4rem;
+        padding: 0.2rem 0.5rem;
+        gap: 4px;
     }
 
     .tab i {
@@ -530,6 +538,11 @@ hr {
     }
 
     #qrCodeCanvas {
+        width: 180px;
+        height: 180px;
+    }
+
+    #parentQrCodeCanvas {
         width: 180px;
         height: 180px;
     }
@@ -628,6 +641,11 @@ hr {
     }
 
     #qrCodeCanvas {
+        width: 200px;
+        height: 200px;
+    }
+
+    #parentQrCodeCanvas {
         width: 200px;
         height: 200px;
     }
