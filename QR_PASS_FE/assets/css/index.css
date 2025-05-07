@@ -1,13 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Cal+Sans&display=swap');
+
+
 /* Base Styles */
 body {
     display: flex;
     flex-direction: column;
     gap: 3rem;
     overflow-x: hidden;
+    background-image: url('../images/UA\ BG.png');
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
+
 img {
-    width: 50px;
+    width: 40px;
+}
+
+
+.nav{
+    gap: 1rem;
 }
 
 /* Hero Section Styles */
@@ -22,9 +34,13 @@ img {
 .hero-container > h2 {
     color: #fff;
     font-size: 3rem;
-    font-weight: 700;
+    font-weight: 100;
     max-width: 30ch;
     text-align: center;
+
+    font-family: "Cal Sans", sans-serif;
+
+
 }
 
 .hero-container > p {
@@ -74,6 +90,10 @@ img {
     transition: all 0.3s ease;
     cursor: pointer;
     border-radius: 1rem;
+
+    position: relative;
+    overflow: hidden;
+
 }
 
 .cards > .card {
@@ -85,7 +105,7 @@ img {
 
 .card > i {
     font-size: 3rem;
-    color: white;
+    color: #fff;
     padding-block: 1rem;
 }
 
@@ -106,6 +126,9 @@ img {
     border: 1px solid #222222;
     transform: translateY(5px);
 }
+
+
+
 
 /* Mobile View (up to 767px) */
 @media (max-width: 767px) {
@@ -221,7 +244,7 @@ img {
     }
 
     .hero-container > h2 {
-        font-size: 3rem;
+        font-size: 3.6rem;
     }
 
     .hero-container > p {
