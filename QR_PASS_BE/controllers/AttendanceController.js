@@ -6,7 +6,7 @@ const CryptoJS = require('crypto-js');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const { errorResponse } = require('../utils/responses');
-const { DateTime } = require('luxon');
+const { DateTime, Duration } = require('luxon');
 
 
 exports.verifyQR = async (req, res) => {
@@ -355,42 +355,35 @@ exports.clearAttendances = async (req, res) => {
     }
 };
 
-// Helper functions for formatting
-function formatTime(date) {
+// Utility: Format time in Asia/Manila
+function formatTime(date, tz = TIMEZONE) {
     if (!date) return 'N/A';
-    const d = new Date(date);
-    let hours = d.getHours();
-    const minutes = d.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; // hour 0 should be 12
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    return DateTime.fromJSDate(new Date(date), { zone: tz }).toFormat('yyyy-LL-dd HH:mm:ss');
 }
 function formatDuration(ms) {
     if (!ms || ms < 0) return 'N/A';
-    const totalMinutes = Math.floor(ms / 60000);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${hours}h ${minutes}m`;
+    const dur = Duration.fromMillis(ms).shiftTo('hours', 'minutes', 'seconds').toObject();
+    const h = Math.floor(dur.hours || 0);
+    const m = Math.floor(dur.minutes || 0);
+    const s = Math.floor(dur.seconds || 0);
+    return `${h}h ${m}m ${s}s`;
 }
-// Helper to get the height required for a single row, returns the max height among all cells
-function getRowHeight(doc, rowData, columnWidths, font, fontSize, padding = 16) {
+// Utility: Estimate row height for wrapped text in PDF table rows
+function getRowHeight(doc, rowData, columnWidths, font, fontSize, verticalPadding) {
     let maxHeight = 0;
     rowData.forEach((cell, i) => {
+        const text = cell ? String(cell) : '';
+        const width = columnWidths[i] - 10;
         doc.font(font).fontSize(fontSize);
-        const cellHeight = doc.heightOfString(cell ? String(cell) : '', {
-            width: columnWidths[i] - 10,
-            align: i > 3 ? 'center' : 'left'
-        }) + padding;
-        if (cellHeight > maxHeight) maxHeight = cellHeight;
+        const { height } = doc.heightOfString(text, { width });
+        maxHeight = Math.max(maxHeight, height);
     });
-    return maxHeight;
+    return Math.ceil(maxHeight + verticalPadding);
 }
 
 exports.generateAttendancePDF = async (req, res) => {
     try {
         const { date, course } = req.query;
-        const TIMEZONE = 'Asia/Manila';
 
         let query = {};
         if (date) {
@@ -512,20 +505,19 @@ exports.generateAttendancePDF = async (req, res) => {
             .text('REPORT DETAILS', 30, doc.y + 10);
 
         doc.font('Helvetica').fillColor('#6c757d');
-
         let metaY = doc.y + 10;
         if (date) {
             doc.text(`• Date: ${date}`, 40, metaY + 15);
         }
         if (course) {
-            doc.text(`• Course: ${course}`, date ? 30 : 30, metaY + 5);
+            doc.text(`• Course: ${course}`, 30, metaY + 5);
         }
         doc.text(
-            `• Generated: ${DateTime.now().setZone(TIMEZONE).toFormat('yyyy-MM-dd hh:mm:ss a')}`,
-            course ? 30 : 30,
+            `• Generated: ${DateTime.now().setZone(TIMEZONE).toFormat('yyyy-LL-dd HH:mm:ss')}`,
+            30,
             metaY - 10
         );
-        doc.text(`• Total Records: ${attendances.length}`, 500, metaY -10);
+        doc.text(`• Total Records: ${attendances.length}`, 500, metaY - 10);
 
         doc.moveTo(20, doc.y + 40)
             .lineTo(doc.page.width - 20, doc.y + 40)
@@ -533,8 +525,6 @@ exports.generateAttendancePDF = async (req, res) => {
             .moveDown(2);
 
         // Add summary section before detailed records
-        // --- ADJUSTED: Position summary text at start (left-aligned) below the details box
-       
         doc.fillColor('#2c3e50')
             .fontSize(12)
             .font('Helvetica-Bold')
@@ -544,7 +534,7 @@ exports.generateAttendancePDF = async (req, res) => {
                 margin: [0, 20, 0, 10]
             });
 
-        // Summary table with improved layout
+        // Summary table
         const summaryHeaders = ['Course', 'Students', 'Parents', 'Total'];
         const summaryWidths = [300, 100, 100, 100];
         const summaryY = doc.y;
@@ -568,30 +558,23 @@ exports.generateAttendancePDF = async (req, res) => {
 
         // Table rows
         doc.font('Helvetica').fontSize(10);
-
         let y = summaryY + 25;
-
         Object.entries(summary).forEach(([courseName, stats], index) => {
-            // Alternate row colors
             const rowColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
             doc.fillColor(rowColor)
                 .rect(20, y, doc.page.width - 40, 25)
                 .fill();
 
-            // Add cell borders
             doc.strokeColor('#e9ecef')
                 .moveTo(20, y)
                 .lineTo(doc.page.width - 20, y)
                 .stroke();
 
-            // Course name with proper text wrapping
             doc.fillColor('#212529')
                 .text(courseName, 30, y + 8, {
                     width: summaryWidths[0] - 20,
                     align: 'left'
                 });
-
-            // Numeric values centered
             doc.text(stats.students.toString(), 320, y + 8, {
                 width: summaryWidths[1],
                 align: 'center'
@@ -659,25 +642,20 @@ exports.generateAttendancePDF = async (req, res) => {
         doc.font(font).fontSize(fontSize);
 
         let pageCount = 1;
-        const timeIn = DateTime.fromISO(att.time_in.toISOString(), { zone: TIMEZONE });
-        const timeOut = att.time_out ? DateTime.fromISO(att.time_out.toISOString(), { zone: TIMEZONE }) : null;
 
         attendances.forEach((att, index) => {
-            // Prepare row data
             let rowData;
             if (att.parent_id) {
-                const duration = timeOut
-                ? formatDuration(timeOut.diff(timeIn).as('milliseconds'))
-                : 'N/A';
+                const duration = att.time_out 
+                    ? formatDuration(new Date(att.time_out) - new Date(att.time_in)) 
+                    : 'N/A';
                 rowData = [
                     `${att.parent_id.student_id?.student_id || 'N/A'}`,
                     att.parent_id.name,
                     att.parent_id.relation,
                     att.parent_id.student_id?.course_id?.name || 'N/A',
-                    DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
-,
-                    att.time_out ? DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
-                    : 'N/A',
+                    formatTime(att.time_in, TIMEZONE),
+                    att.time_out ? formatTime(att.time_out, TIMEZONE) : 'N/A',
                     duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
@@ -690,10 +668,8 @@ exports.generateAttendancePDF = async (req, res) => {
                     att.student_id.name,
                     'Student',
                     att.student_id.course_id?.name || 'N/A',
-                    DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
-,
-                    att.time_out ? DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
-                    : 'N/A',
+                    formatTime(att.time_in, TIMEZONE),
+                    att.time_out ? formatTime(att.time_out, TIMEZONE) : 'N/A',
                     duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
@@ -701,7 +677,6 @@ exports.generateAttendancePDF = async (req, res) => {
                 return; // Skip invalid records
             }
 
-            // Calculate dynamic row height based on wrapped text
             const dynamicRowHeight = getRowHeight(doc, rowData, columnWidths, font, fontSize, verticalPadding);
 
             // Check for page break
@@ -713,7 +688,6 @@ exports.generateAttendancePDF = async (req, res) => {
                 });
                 pageCount++;
 
-                // Add header for continuation
                 doc.fillColor('#f8f9fa')
                     .fontSize(8)
                     .text(`Page ${pageCount} - Continued`, 20, 10);
@@ -744,13 +718,11 @@ exports.generateAttendancePDF = async (req, res) => {
                 .rect(20, y, doc.page.width - 40, dynamicRowHeight)
                 .fill();
 
-            // Add cell borders
             doc.strokeColor('#e9ecef')
                 .moveTo(20, y)
                 .lineTo(doc.page.width - 20, y)
                 .stroke();
 
-            // Draw row content (supporting multi-line)
             x = 20;
             rowData.forEach((cell, i) => {
                 doc.fillColor('#212529')
@@ -764,7 +736,7 @@ exports.generateAttendancePDF = async (req, res) => {
                 x += columnWidths[i];
             });
 
-            y += dynamicRowHeight; // Move y for the next row
+            y += dynamicRowHeight;
         });
 
         // Finalize the PDF
