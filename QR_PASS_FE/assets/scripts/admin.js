@@ -890,7 +890,13 @@ async function verifyQRCode(encryptedData) {
     }
 }
 
-function startScanner() {
+let scanAnimationFrame = null;
+
+document.getElementById('scanBtn').addEventListener('click', startScanner);
+document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
+document.getElementById('newVerifyBtn').addEventListener('click', resetVerification);
+
+async function startScanner() {
     const course = document.getElementById('verifyCourse').value;
     if (!course) {
         alertPopup('Please select the program first');
@@ -910,30 +916,44 @@ function startScanner() {
     
     // Stop any existing stream
     if (window.scannerStream) {
-        window.scannerStream.getTracks().forEach(track => track.stop());
+        stopScanner();
     }
     
-    // Start new stream with better constraints
-    navigator.mediaDevices.getUserMedia({ 
-        video: { 
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        } 
-    })
-    .then(stream => {
-        window.scannerStream = stream;
-        video.srcObject = stream;
-        video.play();
-        scannerActive = true;
-        
-        // Improved camera status handling
-        video.onplaying = () => {
-            cameraStatus.textContent = 'Scanning for QR codes...';
-            cameraStatus.className = 'scanning-status';
+    try {
+        // Android Chrome often needs more specific constraints
+        const constraints = {
+            video: {
+                facingMode: 'environment',
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 },
+                frameRate: { ideal: 30, max: 60 }
+            }
         };
         
-        // Initialize QR code scanner with better configuration
+        // Try to get the camera stream
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        window.scannerStream = stream;
+        video.srcObject = stream;
+        
+        // Important for Android Chrome - wait for metadata to load
+        await new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+                video.play()
+                    .then(resolve)
+                    .catch(err => {
+                        console.error('Video play error:', err);
+                        cameraStatus.textContent = 'Failed to start camera';
+                        cameraStatus.className = 'error-message';
+                        stopScanner();
+                    });
+            };
+        });
+        
+        scannerActive = true;
+        cameraStatus.textContent = 'Scanning for QR codes...';
+        cameraStatus.className = 'scanning-status';
+        
+        // Initialize QR code scanner
         const canvasElement = document.createElement('canvas');
         const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
         let lastScanTime = 0;
@@ -941,72 +961,108 @@ function startScanner() {
         function scanFrame() {
             if (!scannerActive) return;
             
+            scanAnimationFrame = requestAnimationFrame(scanFrame);
+            
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                // Throttle scanning to 300ms to reduce CPU usage
+                // Throttle scanning to reduce CPU usage
                 const now = Date.now();
-                if (now - lastScanTime < 300) {
-                    requestAnimationFrame(scanFrame);
-                    return;
-                }
+                if (now - lastScanTime < 300) return;
                 lastScanTime = now;
                 
-                // Set canvas dimensions to match video
-                canvasElement.height = video.videoHeight;
-                canvasElement.width = video.videoWidth;
-                
-                // Draw video frame to canvas
-                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-                
-                // Get image data and scan for QR codes
-                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: 'dontInvert',
-                    canOverwriteImage: false
-                });
-                
-                if (code) {
-                    cameraStatus.textContent = 'QR code detected!';
-                    cameraStatus.className = 'success-message';
+                try {
+                    // Set canvas dimensions to match video
+                    canvasElement.height = video.videoHeight;
+                    canvasElement.width = video.videoWidth;
                     
-                    // Add slight delay for user feedback
-                    setTimeout(() => {
-                        verifyQRCode(code.data);
-                        stopScanner();
-                    }, 500);
-                    return;
+                    // Draw video frame to canvas
+                    canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                    
+                    // Get image data and scan for QR codes
+                    const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: 'dontInvert',
+                        canOverwriteImage: false
+                    });
+                    
+                    if (code) {
+                        cameraStatus.textContent = 'QR code detected!';
+                        cameraStatus.className = 'success-message';
+                        
+                        // Add slight delay for user feedback
+                        setTimeout(() => {
+                            verifyQRCode(code.data);
+                            stopScanner();
+                        }, 500);
+                    }
+                } catch (err) {
+                    console.error('Scan error:', err);
+                    // Continue scanning even if one frame fails
                 }
             }
-            requestAnimationFrame(scanFrame);
         }
         
         scanFrame();
-    })
-    .catch(err => {
+    } catch (err) {
         console.error('Camera error:', err);
-        cameraStatus.textContent = 'Camera access denied or not available';
-        cameraStatus.className = 'error-message';
         
-        // Provide alternative instructions
-        const helpText = document.createElement('p');
-        helpText.className = 'camera-help';
-        helpText.textContent = 'Please ensure camera permissions are granted and try again.';
-        cameraStatus.appendChild(helpText);
+        // Handle specific Android Chrome issues
+        if (err.name === 'NotAllowedError') {
+            cameraStatus.textContent = 'Camera access denied. Please allow camera permissions.';
+            cameraStatus.className = 'error-message';
+            
+            // Add instructions for Android users
+            const helpText = document.createElement('div');
+            helpText.className = 'camera-help';
+            helpText.innerHTML = `
+                <p>Android Chrome users:</p>
+                <ol>
+                    <li>Tap the lock icon in the address bar</li>
+                    <li>Select "Site settings"</li>
+                    <li>Ensure "Camera" is set to "Allow"</li>
+                    <li>Refresh the page and try again</li>
+                </ol>
+            `;
+            cameraStatus.appendChild(helpText);
+        } else if (err.name === 'NotFoundError' || err.name === 'OverconstrainedError') {
+            cameraStatus.textContent = 'No camera found or camera not supported';
+            cameraStatus.className = 'error-message';
+        } else {
+            cameraStatus.textContent = 'Failed to access camera: ' + err.message;
+            cameraStatus.className = 'error-message';
+        }
         
         stopScanner();
-    });
+    }
 }
 
 function stopScanner() {
     scannerActive = false;
+    
+    // Cancel any pending animation frames
+    if (scanAnimationFrame) {
+        cancelAnimationFrame(scanAnimationFrame);
+        scanAnimationFrame = null;
+    }
+    
+    // Stop all tracks in the stream
+    if (window.scannerStream) {
+        window.scannerStream.getTracks().forEach(track => {
+            track.stop();
+        });
+        window.scannerStream = null;
+    }
+    
+    // Clear the video element
+    const video = document.getElementById('scanner');
+    if (video) {
+        video.srcObject = null;
+    }
+    
+    // Reset UI
     document.getElementById('scanBtn').classList.remove('hidden');
     document.getElementById('stopScanBtn').classList.add('hidden');
     document.getElementById('scannerContainer').classList.add('hidden');
     document.getElementById('cameraStatus').textContent = '';
-    
-    if (window.scannerStream) {
-        window.scannerStream.getTracks().forEach(track => track.stop());
-        window.scannerStream = null;
-    }
 }
 
 function resetVerification() {
