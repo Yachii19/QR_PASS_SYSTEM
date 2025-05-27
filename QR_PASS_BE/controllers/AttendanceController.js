@@ -388,6 +388,7 @@ function getRowHeight(doc, rowData, columnWidths, font, fontSize, padding = 16) 
 exports.generateAttendancePDF = async (req, res) => {
     try {
         const { date, course } = req.query;
+        const TIMEZONE = 'Asia/Manila';
 
         let query = {};
         if (date) {
@@ -517,7 +518,11 @@ exports.generateAttendancePDF = async (req, res) => {
         if (course) {
             doc.text(`• Course: ${course}`, date ? 30 : 30, metaY + 5);
         }
-        doc.text(`• Generated: ${new Date().toLocaleString()}`, course ? 30 : 30, metaY - 10);
+        doc.text(
+            `• Generated: ${new Date().toLocaleString('en-US', { timeZone: TIMEZONE })}`,
+            course ? 30 : 30,
+            metaY - 10
+        );
         doc.text(`• Total Records: ${attendances.length}`, 500, metaY -10);
 
         doc.moveTo(20, doc.y + 40)
