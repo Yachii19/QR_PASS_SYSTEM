@@ -670,8 +670,8 @@ exports.generateAttendancePDF = async (req, res) => {
                     att.parent_id.name,
                     att.parent_id.relation,
                     att.parent_id.student_id?.course_id?.name || 'N/A',
-                    formatTime(att.time_in),
-                    att.time_out ? formatTime(att.time_out) : 'N/A',
+                    formatTime(att.time_in, TIMEZONE),
+                    att.time_out ? formatTime(att.time_out, TIMEZONE) : 'N/A',
                     duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
@@ -684,8 +684,8 @@ exports.generateAttendancePDF = async (req, res) => {
                     att.student_id.name,
                     'Student',
                     att.student_id.course_id?.name || 'N/A',
-                    formatTime(att.time_in),
-                    att.time_out ? formatTime(att.time_out) : 'N/A',
+                    formatTime(att.time_out, TIMEZONE),
+                    att.time_out ? formatTime(att.time_out, TIMEZONE) : 'N/A',
                     duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
