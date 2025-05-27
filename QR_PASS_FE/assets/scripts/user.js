@@ -140,18 +140,19 @@ async function proceedWithRegistration() {
 document.getElementById('generateQrBtn').addEventListener('click', generateStudentQR);
 document.getElementById('downloadBtn').addEventListener('click', downloadQRCode);
 
+const universityLogo = new Image();
+universityLogo.src = 'assets/images/UA-LOGO.png';
+
 async function generateStudentQR() {
     const studentId = document.getElementById('qrStudentId').value.trim();
     const course = document.getElementById('qrCourse').value;
-    
     
     if (studentId.length !== 10) {
         alertPopup('Student ID must be exactly 10 characters long');
         return;
     }
-
     if (!studentId || !course) {
-        alertPopup('Please enter student ID and select program')
+        alertPopup('Please enter student ID and select program');
         return;
     }
     
@@ -162,44 +163,125 @@ async function generateStudentQR() {
     try {
         const response = await fetch(`${API_BASE_URL}/generate-qr`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                studentId,
-                courseName: course
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentId, courseName: course })
         });
-        
         const data = await response.json();
         
         if (response.ok) {
-            // Store student data for download
-            document.getElementById('qrCodeCanvas').dataset.studentId = studentId;
-            document.getElementById('qrCodeCanvas').dataset.studentName = data.studentName || 'student';
-            
-            // Clear previous QR code
             const canvas = document.getElementById('qrCodeCanvas');
+            canvas.dataset.studentId = studentId;
+            canvas.dataset.studentName = data.studentName || 'student';
+
+            // High-res settings with full canvas utilization
+            const CARD_WIDTH = canvas.width = 700;
+            const CARD_HEIGHT = canvas.height = 1000;
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+            // Full canvas gradient background
+            const gradient = ctx.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
+            gradient.addColorStop(0, '#f8f9fa');
+            gradient.addColorStop(1, '#e9ecef');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+            // University header with squared corners
+            ctx.save();
+            ctx.fillStyle = '#003366';
+            ctx.fillRect(0, 0, CARD_WIDTH, 180);
             
-            // Set canvas size explicitly
-            canvas.width = 300;
-            canvas.height = 300;
+            // University name with gold accent
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px "Times New Roman", serif';
+            ctx.fillText('UNIVERSITY OF THE ASSUMPTION', CARD_WIDTH/2, 70);
+
+            // Graduation year with decorative elements
+            ctx.font = 'bold 28px "Times New Roman", serif';
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('GRADUATION 2025', CARD_WIDTH/2, 120);
             
-            // Generate QR code directly to canvas
-            QRCode.toCanvas(canvas, data.encryptedData, {
-                width: 250,
-                margin: 2,
-                errorCorrectionLevel: 'H'
-            }, (error) => {
-                if (error) {
-                    console.error('QR generation error:', error);
-                    alertPopup('Failed to generate QR code');
-                } else {
-                    document.getElementById('qrCodeContainer').classList.remove('hidden');
-                }
+            // Decorative gold line
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(CARD_WIDTH/2 - 100, 140);
+            ctx.lineTo(CARD_WIDTH/2 + 100, 140);
+            ctx.stroke();
+            ctx.restore();
+
+            // Program information
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#003366';
+            ctx.font = 'bold 18px "Times New Roman", serif';
+            const courseText = `${course.toUpperCase()}`;
+            ctx.fillText(courseText, CARD_WIDTH/2, 220);
+            ctx.restore();
+
+            // QR Code Container - full width utilization
+            const QR_SIZE = 400;
+            const QR_TOP = 280;
+            const QR_LEFT = (CARD_WIDTH - QR_SIZE)/2;
+
+            // Generate QR code
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = QR_SIZE;
+            tempCanvas.height = QR_SIZE;
+            await new Promise((resolve, reject) => {
+                QRCode.toCanvas(tempCanvas, data.encryptedData, {
+                    width: QR_SIZE,
+                    margin: 2,
+                    errorCorrectionLevel: 'H',
+                    color: {
+                        dark: '#003366',
+                        light: '#ffffff00'
+                    }
+                }, (error) => error ? reject(error) : resolve());
             });
+
+            // Draw QR with squared corners
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 5;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(QR_LEFT - 20, QR_TOP - 20, QR_SIZE + 40, QR_SIZE + 40);
+            ctx.restore();
+
+            ctx.drawImage(tempCanvas, QR_LEFT, QR_TOP, QR_SIZE, QR_SIZE);
+
+            // Student information section
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#333333';
+            ctx.font = '24px "Times New Roman", serif';
+            ctx.fillText('GRADUATE IDENTIFICATION', CARD_WIDTH/2, QR_TOP + QR_SIZE + 60);
+            
+            ctx.font = 'bold 28px "Times New Roman", serif';
+            ctx.fillStyle = '#003366';
+            ctx.fillText(studentId, CARD_WIDTH/2, QR_TOP + QR_SIZE + 100);
+            
+            if (data.studentName) {
+                ctx.font = 'italic 22px "Times New Roman", serif';
+                ctx.fillStyle = '#555555';
+                ctx.fillText(data.studentName.toUpperCase(), CARD_WIDTH/2, QR_TOP + QR_SIZE + 140);
+            }
+            ctx.restore();
+
+            // Footer with squared corners
+            ctx.save();
+            ctx.fillStyle = '#003366';
+            ctx.fillRect(0, CARD_HEIGHT - 80, CARD_WIDTH, 80);
+            
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'italic 22px "Times New Roman", serif';
+            ctx.fillText('Congratulations on Your Achievement!', CARD_WIDTH/2, CARD_HEIGHT - 40);
+            ctx.restore();
+
+            document.getElementById('qrCodeContainer').classList.remove('hidden');
         } else {
             alertPopup(data.error || 'Failed to generate QR code');
         }
@@ -208,9 +290,10 @@ async function generateStudentQR() {
         alertPopup('Failed to generate QR code. Please try again.');
     } finally {
         generateBtn.disabled = false;
-        generateBtn.textContent = 'Generate QR Pass';
+        generateBtn.textContent = 'Generate Graduation QR Pass';
     }
 }
+
 
 // QR DOWNLOAD
 function downloadQRCode() {
@@ -389,7 +472,6 @@ async function generateParentQR() {
         alertPopup('Student ID must be exactly 10 characters long');
         return;
     }
-
     if (!studentId || !parentName) {
         alertPopup('Please enter student ID and parent name');
         return;
@@ -397,49 +479,119 @@ async function generateParentQR() {
     
     const generateBtn = document.getElementById('generateParentQrBtn');
     generateBtn.disabled = true;
-    generateBtn.textContent = 'Generating...';
+    generateBtn.textContent = 'Generating Parent Pass...';
     
     try {
         const response = await fetch(`${API_BASE_URL}/generate-parent-qr`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                studentId,
-                parentName
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentId, parentName })
         });
-        
         const data = await response.json();
         
         if (response.ok) {
-            // Store parent data for download
-            document.getElementById('parentQrCodeCanvas').dataset.studentId = studentId;
-            document.getElementById('parentQrCodeCanvas').dataset.parentName = parentName;
-            
-            // Clear previous QR code
             const canvas = document.getElementById('parentQrCodeCanvas');
+            canvas.dataset.studentId = studentId;
+            canvas.dataset.parentName = parentName;
+
+            // Full canvas dimensions
+            const CARD_WIDTH = canvas.width = 700;
+            const CARD_HEIGHT = canvas.height = 1000;
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+            // Full canvas gradient background
+            const gradient = ctx.createLinearGradient(0, 0, CARD_WIDTH, CARD_HEIGHT);
+            gradient.addColorStop(0, '#f8f1f1');
+            gradient.addColorStop(1, '#e9d8d8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
+
+            // University header with squared corners
+            ctx.save();
+            ctx.fillStyle = '#800000';
+            ctx.fillRect(0, 0, CARD_WIDTH, 180);
             
-            // Set canvas size explicitly
-            canvas.width = 300;
-            canvas.height = 300;
+            // University name
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px "Times New Roman", serif';
+            ctx.fillText('UNIVERSITY OF THE ASSUMPTION', CARD_WIDTH/2, 70);
+
+            // Parent pass designation
+            ctx.font = 'bold 28px "Times New Roman", serif';
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText('PARENT COMMENCEMENT PASS', CARD_WIDTH/2, 120);
             
-            // Generate QR code directly to canvas
-            QRCode.toCanvas(canvas, data.encryptedData, {
-                width: 250,
-                margin: 2,
-                errorCorrectionLevel: 'H'
-            }, (error) => {
-                if (error) {
-                    console.error('Parent QR generation error:', error);
-                    alertPopup('Failed to generate parent QR code');
-                } else {
-                    document.getElementById('parentQrCodeContainer').classList.remove('hidden');
-                }
+            // Decorative gold line
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(CARD_WIDTH/2 - 120, 140);
+            ctx.lineTo(CARD_WIDTH/2 + 120, 140);
+            ctx.stroke();
+            ctx.restore();
+
+            // QR Code Container - full width utilization
+            const QR_SIZE = 400;
+            const QR_TOP = 280;
+            const QR_LEFT = (CARD_WIDTH - QR_SIZE)/2;
+
+            // Generate QR code
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = QR_SIZE;
+            tempCanvas.height = QR_SIZE;
+            await new Promise((resolve, reject) => {
+                QRCode.toCanvas(tempCanvas, data.encryptedData, {
+                    width: QR_SIZE,
+                    margin: 2,
+                    errorCorrectionLevel: 'H',
+                    color: {
+                        dark: '#800000',
+                        light: '#ffffff00'
+                    }
+                }, (error) => error ? reject(error) : resolve());
             });
+
+            // Draw QR with squared corners
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetY = 5;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(QR_LEFT - 20, QR_TOP - 20, QR_SIZE + 40, QR_SIZE + 40);
+            ctx.restore();
+
+            ctx.drawImage(tempCanvas, QR_LEFT, QR_TOP, QR_SIZE, QR_SIZE);
+
+            // Parent information section
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#333333';
+            ctx.font = '24px "Times New Roman", serif';
+            ctx.fillText('PARENT/GUARDIAN OF GRADUATE', CARD_WIDTH/2, QR_TOP + QR_SIZE + 60);
+            
+            ctx.font = 'bold 26px "Times New Roman", serif';
+            ctx.fillStyle = '#800000';
+            ctx.fillText(parentName.toUpperCase(), CARD_WIDTH/2, QR_TOP + QR_SIZE + 100);
+            
+            ctx.font = '20px "Times New Roman", serif';
+            ctx.fillStyle = '#555555';
+            ctx.fillText(`Student ID: ${studentId}`, CARD_WIDTH/2, QR_TOP + QR_SIZE + 140);
+            ctx.restore();
+
+            // Footer with squared corners
+            ctx.save();
+            ctx.fillStyle = '#800000';
+            ctx.fillRect(0, CARD_HEIGHT - 80, CARD_WIDTH, 80);
+            
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'italic 22px "Times New Roman", serif';
+            ctx.fillText('We Honor Your Support and Dedication', CARD_WIDTH/2, CARD_HEIGHT - 40);
+            ctx.restore();
+
+            document.getElementById('parentQrCodeContainer').classList.remove('hidden');
         } else {
             alertPopup(data.error || 'Failed to generate parent QR code');
         }

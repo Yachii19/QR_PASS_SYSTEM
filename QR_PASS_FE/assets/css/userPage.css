@@ -734,8 +734,13 @@ hr {
     }
 
     #qrCodeCanvas {
-        width: 250px;
-        height: 250px;
+        width: 300px;
+        height: 400px;
+    }
+
+    #parentQrCodeCanvas {
+        width: 300px;
+        height: 400px;
     }
 
     .download-qr-btn {
