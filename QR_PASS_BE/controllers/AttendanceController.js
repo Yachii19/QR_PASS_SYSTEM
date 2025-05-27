@@ -6,6 +6,8 @@ const CryptoJS = require('crypto-js');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const { errorResponse } = require('../utils/responses');
+const { DateTime } = require('luxon');
+
 
 exports.verifyQR = async (req, res) => {
     try {
@@ -519,7 +521,7 @@ exports.generateAttendancePDF = async (req, res) => {
             doc.text(`• Course: ${course}`, date ? 30 : 30, metaY + 5);
         }
         doc.text(
-            `• Generated: ${new Date().toLocaleString('en-US', { timeZone: TIMEZONE })}`,
+            `• Generated: ${DateTime.now().setZone(TIMEZONE).toFormat('yyyy-MM-dd hh:mm:ss a')}`,
             course ? 30 : 30,
             metaY - 10
         );
@@ -657,21 +659,25 @@ exports.generateAttendancePDF = async (req, res) => {
         doc.font(font).fontSize(fontSize);
 
         let pageCount = 1;
+        const timeIn = DateTime.fromISO(att.time_in.toISOString(), { zone: TIMEZONE });
+        const timeOut = att.time_out ? DateTime.fromISO(att.time_out.toISOString(), { zone: TIMEZONE }) : null;
 
         attendances.forEach((att, index) => {
             // Prepare row data
             let rowData;
             if (att.parent_id) {
-                const duration = att.time_out 
-                    ? formatDuration(new Date(att.time_out) - new Date(att.time_in)) 
-                    : 'N/A';
+                const duration = timeOut
+                ? formatDuration(timeOut.diff(timeIn).as('milliseconds'))
+                : 'N/A';
                 rowData = [
                     `${att.parent_id.student_id?.student_id || 'N/A'}`,
                     att.parent_id.name,
                     att.parent_id.relation,
                     att.parent_id.student_id?.course_id?.name || 'N/A',
-                    formatTime(att.time_in, TIMEZONE),
-                    att.time_out ? formatTime(att.time_out, TIMEZONE) : 'N/A',
+                    DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
+,
+                    att.time_out ? DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
+                    : 'N/A',
                     duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
@@ -684,8 +690,10 @@ exports.generateAttendancePDF = async (req, res) => {
                     att.student_id.name,
                     'Student',
                     att.student_id.course_id?.name || 'N/A',
-                    formatTime(att.time_out, TIMEZONE),
-                    att.time_out ? formatTime(att.time_out, TIMEZONE) : 'N/A',
+                    DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
+,
+                    att.time_out ? DateTime.fromJSDate(att.time_in).setZone(TIMEZONE).toFormat('hh:mm a')
+                    : 'N/A',
                     duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
