@@ -274,7 +274,7 @@
         <div class="modal-content">
             <h3>Error Generating Report</h3>
             <p id="errorModalMessage"></p>
-            <button onclick="document.getElementById('errorModal').style.display='none'; 
+            <button class="alertCloseButton" onclick="document.getElementById('errorModal').style.display='none'; 
                             document.body.classList.remove('modal-open');">
                 Close
             </button>
@@ -286,7 +286,7 @@
             <h3>No Records Found</h3>
             <p>No attendance records were found for the selected filters.</p>
             <p>Please try different filter criteria.</p>
-            <button onclick="document.getElementById('emptyRecordModal').style.display='none'; 
+            <button class="alertCloseButton" onclick="document.getElementById('emptyRecordModal').style.display='none'; 
                             document.body.classList.remove('modal-open');">
                 Close
             </button>
