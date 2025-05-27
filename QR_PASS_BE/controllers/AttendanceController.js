@@ -177,6 +177,7 @@ exports.verifyQR = async (req, res) => {
 exports.decryptQR = async (req, res) => {
     try {
         const { encryptedData, courseName } = req.body;
+        const TIMEZONE = 'Asia/Manila';
         
         if (!encryptedData || !courseName) {
             return errorResponse(res, 400, 'All fields (encryptedData, courseName) are required');
