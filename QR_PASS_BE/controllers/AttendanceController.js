@@ -7,6 +7,7 @@ const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const { errorResponse } = require('../utils/responses');
 const { DateTime, Duration } = require('luxon');
+const TIMEZONE = 'Asia/Manila';
 
 
 exports.verifyQR = async (req, res) => {
@@ -361,6 +362,8 @@ function formatTime(date, tz = TIMEZONE) {
     if (!date) return 'N/A';
     return DateTime.fromJSDate(new Date(date), { zone: tz }).toFormat('yyyy-LL-dd HH:mm:ss');
 }
+
+// Utility: Format duration in H M S
 function formatDuration(ms) {
     if (!ms || ms < 0) return 'N/A';
     const dur = Duration.fromMillis(ms).shiftTo('hours', 'minutes', 'seconds').toObject();
@@ -369,6 +372,7 @@ function formatDuration(ms) {
     const s = Math.floor(dur.seconds || 0);
     return `${h}h ${m}m ${s}s`;
 }
+
 // Utility: Estimate row height for wrapped text in PDF table rows
 function getRowHeight(doc, rowData, columnWidths, font, fontSize, verticalPadding) {
     let maxHeight = 0;
@@ -376,7 +380,7 @@ function getRowHeight(doc, rowData, columnWidths, font, fontSize, verticalPaddin
         const text = cell ? String(cell) : '';
         const width = columnWidths[i] - 10;
         doc.font(font).fontSize(fontSize);
-        const { height } = doc.heightOfString(text, { width });
+        const height = doc.heightOfString(text, { width });
         maxHeight = Math.max(maxHeight, height);
     });
     return Math.ceil(maxHeight + verticalPadding);
@@ -428,33 +432,9 @@ exports.generateAttendancePDF = async (req, res) => {
             .sort({ date_in: -1, time_in: -1 });
 
         if (attendances.length === 0) {
+            // Only send JSON error if you have NOT piped the PDF yet!
             return res.status(404).json({ error: 'No attendance records found for the selected filters' });
         }
-
-        // Calculate summary statistics
-        const summary = {};
-        attendances.forEach(att => {
-            const courseName = att.parent_id 
-                ? att.parent_id.student_id?.course_id?.name 
-                : att.student_id?.course_id?.name;
-
-            if (!courseName) return;
-
-            if (!summary[courseName]) {
-                summary[courseName] = {
-                    students: 0,
-                    parents: 0,
-                    total: 0
-                };
-            }
-
-            if (att.parent_id) {
-                summary[courseName].parents++;
-            } else {
-                summary[courseName].students++;
-            }
-            summary[courseName].total++;
-        });
 
         // Create a PDF document with professional styling
         const doc = new PDFDocument({
@@ -466,8 +446,6 @@ exports.generateAttendancePDF = async (req, res) => {
 
         // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
-        
-        // Generate filename
         let filename = 'Attendance_Report';
         if (date) filename += `_${date.replace(/-/g, '')}`;
         if (course) filename += `_${course.replace(/\s+/g, '_')}`;
@@ -477,15 +455,12 @@ exports.generateAttendancePDF = async (req, res) => {
         // Handle stream errors
         doc.on('error', (err) => {
             console.error('PDF stream error:', err);
-            if (!res.headersSent) {
-                res.status(500).json({ error: 'Failed to generate PDF' });
-            }
         });
 
         // Pipe the PDF to the response
         doc.pipe(res);
 
-        // Add professional header with logo placeholder and title
+        // HEADER
         doc.fillColor('#2c3e50')
             .fontSize(16)
             .font('Helvetica-Bold')
@@ -495,7 +470,7 @@ exports.generateAttendancePDF = async (req, res) => {
                 margin: [0, 10, 0, 15]
             });
 
-        // Add report metadata in a subtle box
+        // METADATA BOX
         doc.rect(20, doc.y, doc.page.width - 40, 50)
             .fill('#f8f9fa')
             .stroke('#e9ecef');
@@ -525,7 +500,32 @@ exports.generateAttendancePDF = async (req, res) => {
             .stroke('#dee2e6')
             .moveDown(2);
 
-        // Add summary section before detailed records
+        // SUMMARY
+        // Calculate summary statistics
+        const summary = {};
+        attendances.forEach(att => {
+            const courseName = att.parent_id 
+                ? att.parent_id.student_id?.course_id?.name 
+                : att.student_id?.course_id?.name;
+
+            if (!courseName) return;
+
+            if (!summary[courseName]) {
+                summary[courseName] = {
+                    students: 0,
+                    parents: 0,
+                    total: 0
+                };
+            }
+
+            if (att.parent_id) {
+                summary[courseName].parents++;
+            } else {
+                summary[courseName].students++;
+            }
+            summary[courseName].total++;
+        });
+
         doc.fillColor('#2c3e50')
             .fontSize(12)
             .font('Helvetica-Bold')
@@ -594,7 +594,7 @@ exports.generateAttendancePDF = async (req, res) => {
 
         doc.moveDown(2);
 
-        // Detailed records section
+        // DETAILED RECORDS
         doc.addPage({
             size: 'A4',
             layout: 'landscape',
