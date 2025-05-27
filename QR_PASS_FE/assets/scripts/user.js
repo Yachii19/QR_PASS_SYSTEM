@@ -151,7 +151,7 @@ async function generateStudentQR() {
     }
 
     if (!studentId || !course) {
-        alertPopup('Please enter student ID and select course');
+        alertPopup('Please enter student ID and select program')
         return;
     }
     
@@ -265,7 +265,7 @@ async function loadCourses() {
         }
     } catch (error) {
         console.error('Course loading error:', error);
-        alertPopup('Failed to load courses. Please try again later.');
+        alertPopup('Failed to load programs. Please try again later.');
         return [];
     }
 }
@@ -286,7 +286,7 @@ async function populateCourseSelects() {
             while (select.options.length > 1) {
                 select.remove(1);
             }
-            select.innerHTML += '<option value="" disabled>Loading courses...</option>';
+            select.innerHTML += '<option value="" disabled>Loading programs...</option>';
         }
     });
     
@@ -305,7 +305,7 @@ async function populateCourseSelects() {
             if (select.options.length === 0) {
                 const defaultOption = document.createElement('option');
                 defaultOption.value = '';
-                defaultOption.textContent = selectId === 'filterCourse' ? 'All Courses' : 'Select your course';
+                defaultOption.textContent = selectId === 'filterCourse' ? 'All Programs' : 'Select your program';
                 select.appendChild(defaultOption);
             }
             

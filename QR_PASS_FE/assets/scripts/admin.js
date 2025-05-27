@@ -110,7 +110,7 @@ async function loadAdminCourses() {
             
             if (data.courses.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="3" class="no-records">No courses found</td>';
+                row.innerHTML = '<td colspan="3" class="no-records">No programs found</td>';
                 tbody.appendChild(row);
                 return;
             }
@@ -152,11 +152,11 @@ async function loadAdminCourses() {
                 btn.addEventListener('click', confirmDeleteCourse);
             });
         } else {
-            throw new Error(data.error || 'Failed to load courses');
+            throw new Error(data.error || 'Failed to load programs');
         }
     } catch (error) {
         console.error('Load courses error:', error);
-        showStatusMessage('courseStatus', 'Failed to load courses', false);
+        showStatusMessage('courseStatus', 'Failed to load programs', false);
     }
 }
 
@@ -249,11 +249,11 @@ async function loadCoursesForFilter() {
                 verifyCourseSelect.appendChild(verifyOption);
             });
         } else {
-            throw new Error(data.error || 'Failed to load courses');
+            throw new Error(data.error || 'Failed to load programs');
         }
     } catch (error) {
         console.error('Load courses error:', error);
-        showStatusMessage('courseStatus', 'Failed to load courses', false);
+        showStatusMessage('courseStatus', 'Failed to load programs', false);
     }
 }
 
@@ -263,7 +263,7 @@ document.getElementById('addCourseBtn').addEventListener('click', async () => {
     const key = document.getElementById('courseKey').value.trim();
     
     if (!name || !key) {
-        showStatusMessage('courseStatus', 'Both course name and encryption key are required', false);
+        showStatusMessage('courseStatus', 'Both program name and encryption key are required', false);
         return;
     }
     
@@ -291,11 +291,11 @@ document.getElementById('addCourseBtn').addEventListener('click', async () => {
             await loadAdminCourses();
             await loadCoursesForFilter();
         } else {
-            throw new Error(data.error || 'Failed to add course');
+            throw new Error(data.error || 'Failed to add program');
         }
     } catch (error) {
         console.error('Add course error:', error);
-        showStatusMessage('courseStatus', error.message || 'Failed to add course', false);
+        showStatusMessage('courseStatus', error.message || 'Failed to add program', false);
     }
 });
 
@@ -336,7 +336,7 @@ function showEditCourseModal(e) {
             modal.classList.remove('hidden');
         } catch (error) {
             console.error('Error showing edit modal:', error);
-            showStatusMessage('courseStatus', 'Error loading course data', false);
+            showStatusMessage('courseStatus', 'Error loading program data', false);
         } finally {
             // Remove loading overlay
             loadingOverlay.remove();
@@ -380,7 +380,7 @@ document.getElementById('saveCourseBtn').addEventListener('click', async () => {
     const key = document.getElementById('editCourseKey').value.trim();
     
     if (!name || !key) {
-        showStatusMessage('courseStatus', 'Both course name and encryption key are required', false);
+        showStatusMessage('courseStatus', 'Both program name and encryption key are required', false);
         return;
     }
     
@@ -402,16 +402,16 @@ document.getElementById('saveCourseBtn').addEventListener('click', async () => {
         const data = await response.json();
         
         if (response.ok) {
-            showStatusMessage('courseStatus', 'Course updated successfully', true);
+            showStatusMessage('courseStatus', 'Program updated successfully', true);
             closeEditModal();
             await loadAdminCourses();
             await loadCoursesForFilter();
         } else {
-            throw new Error(data.error || 'Failed to update course');
+            throw new Error(data.error || 'Failed to update program');
         }
     } catch (error) {
         console.error('Update course error:', error);
-        showStatusMessage('courseStatus', error.message || 'Failed to update course', false);
+        showStatusMessage('courseStatus', error.message || 'Failed to update program', false);
     }
 });
 
@@ -442,7 +442,7 @@ function showDeleteCourseModal(e) {
             currentDeletingCourseId = courseId;
             currentDeletingCourseName = courseName;
             const message = document.getElementById('deleteCourseMessage');
-            message.textContent = `Are you sure you want to delete the course "${courseName}"?`;
+            message.textContent = `Are you sure you want to delete the program "${courseName}"?`;
             document.getElementById('deleteCourseStatus').classList.add('hidden');
             
             // Show modal
@@ -452,7 +452,7 @@ function showDeleteCourseModal(e) {
             modal.classList.remove('hidden');
         } catch (error) {
             console.error('Error showing delete modal:', error);
-            showStatusMessage('courseStatus', 'Error loading course data', false);
+            showStatusMessage('courseStatus', 'Error loading program data', false);
         } finally {
             // Remove loading overlay
             loadingOverlay.remove();
@@ -506,15 +506,15 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
         const data = await response.json();
         
         if (response.ok) {
-            showStatusMessage('courseStatus', 'Course deleted successfully', true);
+            showStatusMessage('courseStatus', 'Program deleted successfully', true);
             await loadAdminCourses();
             await loadCoursesForFilter();
         } else {
-            throw new Error(data.error || 'Failed to delete course');
+            throw new Error(data.error || 'Failed to delete program');
         }
     } catch (error) {
         console.error('Delete course error:', error);
-        showStatusMessage('courseStatus', error.message || 'Failed to delete course', false);
+        showStatusMessage('courseStatus', error.message || 'Failed to delete program', false);
     }
 });
 
@@ -775,7 +775,7 @@ async function verifyQRCode(encryptedData) {
     const course = document.getElementById('verifyCourse').value;
     
     if (!course) {
-        alertPopup('Please select a course');
+        alertPopup('Please select a Program');
         return;
     }
     
@@ -874,7 +874,7 @@ async function verifyQRCode(encryptedData) {
             <div class="verification-help">
                 <p><strong>Possible solutions:</strong></p>
                 <ul>
-                    <li>Ensure you selected the correct course</li>
+                    <li>Ensure you selected the correct Program</li>
                     <li>Check that the encryption key is correct</li>
                     <li>Make sure the QR code hasn't been tampered with</li>
                     <li>Try scanning again in better lighting conditions</li>
@@ -893,7 +893,7 @@ async function verifyQRCode(encryptedData) {
 function startScanner() {
     const course = document.getElementById('verifyCourse').value;
     if (!course) {
-        alertPopup('Please select the course first');
+        alertPopup('Please select the program first');
         return;
     }
     
