@@ -35,7 +35,8 @@
     color: #FFFFFF;
 }
 
-.custom-alert #alertCloseButton {
+.custom-alert #alertCloseButton,
+#alertCloseButton {
     margin-top: 20px;
     width: 100px;
     padding: 10px 0;
@@ -48,7 +49,8 @@
     transition: background-color 0.3s ease, opacity 0.3s ease;
 }
 
-.custom-alert #alertCloseButton:hover {
+.custom-alert #alertCloseButton:hover,
+#alertCloseButton:hover {
     opacity: 0.8;
 }
 
