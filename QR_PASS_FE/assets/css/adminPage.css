@@ -97,7 +97,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 label {
     display: block;
-    margin-block: 15px;
+    margin-block: 10px;
     font-weight: 400;
     font-size: .8rem;
 }
@@ -261,7 +261,7 @@ input, select {
 .login-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+   
     width: 600px;
     padding: 5rem;
     background-color: #000;
