@@ -209,7 +209,7 @@ hr {
 
 #qrCodeCanvas {
     width: 200px;
-    height: 200px;
+    height: 300px;
     background-color: white;
     border: 1px solid #ddd;
 }
@@ -422,8 +422,8 @@ hr {
 
 /* Add these styles */
 #parentQrCodeCanvas {
-    width: 250px;
-    height: 250px;
+    width: 200px;
+    height: 300px;
     background-color: white;
     border: 1px solid #ddd;
 }
@@ -539,12 +539,12 @@ hr {
 
     #qrCodeCanvas {
         width: 180px;
-        height: 180px;
+        height: 260px;
     }
 
     #parentQrCodeCanvas {
         width: 180px;
-        height: 180px;
+        height: 260px;
     }
 
     .download-qr-btn {
@@ -642,12 +642,12 @@ hr {
 
     #qrCodeCanvas {
         width: 200px;
-        height: 200px;
+        height: 300px;
     }
 
     #parentQrCodeCanvas {
         width: 200px;
-        height: 200px;
+        height: 300px;
     }
 
     .download-qr-btn {
