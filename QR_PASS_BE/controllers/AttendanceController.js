@@ -357,10 +357,15 @@ exports.clearAttendances = async (req, res) => {
     }
 };
 
-// Utility: Format time in Asia/Manila
+// Utility: Format time in "hh:mm:ss AM/PM" in Asia/Manila
 function formatTime(date, tz = TIMEZONE) {
     if (!date) return 'N/A';
-    return DateTime.fromJSDate(new Date(date), { zone: tz }).toFormat('yyyy-LL-dd HH:mm:ss');
+    return DateTime.fromJSDate(new Date(date), { zone: tz }).toFormat('hh:mm:ss a'); // 12-hour format with AM/PM
+}
+
+// Utility: Format the generated date in "yyyy-LL-dd hh:mm:ss AM/PM"
+function formatGeneratedDate(date = DateTime.now(), tz = TIMEZONE) {
+    return DateTime.fromJSDate(new Date(date), { zone: tz }).toFormat('yyyy-LL-dd hh:mm:ss a');
 }
 
 // Utility: Format duration in H M S
@@ -432,7 +437,6 @@ exports.generateAttendancePDF = async (req, res) => {
             .sort({ date_in: -1, time_in: -1 });
 
         if (attendances.length === 0) {
-            // Only send JSON error if you have NOT piped the PDF yet!
             return res.status(404).json({ error: 'No attendance records found for the selected filters' });
         }
 
@@ -489,7 +493,7 @@ exports.generateAttendancePDF = async (req, res) => {
             doc.text(`• Course: ${course}`, 30, metaY + 5);
         }
         doc.text(
-            `• Generated: ${DateTime.now().setZone(TIMEZONE).toFormat('yyyy-LL-dd HH:mm:ss')}`,
+            `• Generated: ${formatGeneratedDate()}`,
             30,
             metaY - 10
         );
