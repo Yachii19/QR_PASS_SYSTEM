@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Graduation QR Pass System</title>
+    <link rel="shortcut icon" href="./assets/images/UA-LOGO.png" type="image/x-icon">
 
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -266,6 +267,29 @@
         <div class="alert-content">
             <span id="alertMessage"></span>
             <button id="alertCloseButton">OK</button>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <h3>Error Generating Report</h3>
+            <p id="errorModalMessage"></p>
+            <button onclick="document.getElementById('errorModal').style.display='none'; 
+                            document.body.classList.remove('modal-open');">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <div id="emptyRecordModal" class="modal">
+        <div class="modal-content">
+            <h3>No Records Found</h3>
+            <p>No attendance records were found for the selected filters.</p>
+            <p>Please try different filter criteria.</p>
+            <button onclick="document.getElementById('emptyRecordModal').style.display='none'; 
+                            document.body.classList.remove('modal-open');">
+                Close
+            </button>
         </div>
     </div>
 

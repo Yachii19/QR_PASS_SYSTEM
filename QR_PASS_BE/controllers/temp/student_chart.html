@@ -1,0 +1,68 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Chart</title>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+                body { margin: 0; padding: 0; }
+                canvas { display: block; }
+            </style>
+        </head>
+        <body>
+            <canvas id="chart" width="800" height="600"></canvas>
+            <script>
+                const ctx = document.getElementById('chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ["Bachelor of Science in Accounting Information System","Bachelor of Science in Information Technology"],
+                        datasets: [{
+                            data: [1,2],
+                            backgroundColor: [
+                                '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', 
+                                '#59a14f', '#edc948', '#b07aa1', '#ff9da7', 
+                                '#9c755f', '#bab0ac'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Student Attendance by Course',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                padding: 20
+                            },
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    font: {
+                                        size: 12
+                                    },
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    

@@ -321,7 +321,7 @@ exports.getAttendances = async (req, res) => {
 
 exports.clearAttendances = async (req, res) => {
     try {
-        const { date, course } = req.body;
+        const { date, course } = req.query;
         
         let query = {};
         if (date) { 
@@ -353,6 +353,38 @@ exports.clearAttendances = async (req, res) => {
     }
 };
 
+// Helper functions for formatting
+function formatTime(date) {
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    let hours = d.getHours();
+    const minutes = d.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // hour 0 should be 12
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+}
+function formatDuration(ms) {
+    if (!ms || ms < 0) return 'N/A';
+    const totalMinutes = Math.floor(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
+}
+// Helper to get the height required for a single row, returns the max height among all cells
+function getRowHeight(doc, rowData, columnWidths, font, fontSize, padding = 16) {
+    let maxHeight = 0;
+    rowData.forEach((cell, i) => {
+        doc.font(font).fontSize(fontSize);
+        const cellHeight = doc.heightOfString(cell ? String(cell) : '', {
+            width: columnWidths[i] - 10,
+            align: i > 3 ? 'center' : 'left'
+        }) + padding;
+        if (cellHeight > maxHeight) maxHeight = cellHeight;
+    });
+    return maxHeight;
+}
+
 exports.generateAttendancePDF = async (req, res) => {
     try {
         const { date, course } = req.query;
@@ -366,8 +398,9 @@ exports.generateAttendancePDF = async (req, res) => {
             query.date_in = { $gte: startDate, $lte: endDate };
         }
 
+        let courseObj = null;
         if (course) {
-            const courseObj = await Course.findOne({ name: course });
+            courseObj = await Course.findOne({ name: course });
             if (courseObj) {
                 const students = await Student.find({ course_id: courseObj._id });
                 query.student_id = { $in: students.map(s => s._id) };
@@ -401,9 +434,34 @@ exports.generateAttendancePDF = async (req, res) => {
             return res.status(404).json({ error: 'No attendance records found for the selected filters' });
         }
 
-        // Create a PDF document in landscape format with better margins
+        // Calculate summary statistics
+        const summary = {};
+        attendances.forEach(att => {
+            const courseName = att.parent_id 
+                ? att.parent_id.student_id?.course_id?.name 
+                : att.student_id?.course_id?.name;
+
+            if (!courseName) return;
+
+            if (!summary[courseName]) {
+                summary[courseName] = {
+                    students: 0,
+                    parents: 0,
+                    total: 0
+                };
+            }
+
+            if (att.parent_id) {
+                summary[courseName].parents++;
+            } else {
+                summary[courseName].students++;
+            }
+            summary[courseName].total++;
+        });
+
+        // Create a PDF document with professional styling
         const doc = new PDFDocument({
-            margin: 30,
+            margin: 20,
             size: 'A4',
             layout: 'landscape',
             bufferPages: true
@@ -411,13 +469,12 @@ exports.generateAttendancePDF = async (req, res) => {
 
         // Set response headers
         res.setHeader('Content-Type', 'application/pdf');
-
-        // Generate filename based on filters
-        let filename = 'Attendance_Records';
+        
+        // Generate filename
+        let filename = 'Attendance_Report';
         if (date) filename += `_${date.replace(/-/g, '')}`;
         if (course) filename += `_${course.replace(/\s+/g, '_')}`;
         filename += '.pdf';
-
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
         // Handle stream errors
@@ -431,168 +488,270 @@ exports.generateAttendancePDF = async (req, res) => {
         // Pipe the PDF to the response
         doc.pipe(res);
 
-        // Add professional header with logo and title
-        doc.fillColor('#333333')
-            .fontSize(20)
+        // Add professional header with logo placeholder and title
+        doc.fillColor('#2c3e50')
+            .fontSize(16)
             .font('Helvetica-Bold')
-            .text('ATTENDANCE RECORDS', {
+            .text('ATTENDANCE REPORT', {
                 align: 'center',
-                underline: true,
-                margin: [0, 10, 0, 20]
+                underline: false,
+                margin: [0, 10, 0, 15]
             });
 
-        // Add filters info in a bordered box
-        doc.rect(30, doc.y, doc.page.width - 60, 60)
-            .fill('#f5f5f5')
-            .stroke('#dddddd');
+        // Add report metadata in a subtle box
+        doc.rect(20, doc.y, doc.page.width - 40, 50)
+            .fill('#f8f9fa')
+            .stroke('#e9ecef');
 
-        doc.fillColor('#444444')
-            .fontSize(12)
+        doc.fillColor('#495057')
+            .fontSize(10)
             .font('Helvetica-Bold')
-            .text('Report Filters:', 40, doc.y + 15);
+            .text('REPORT DETAILS', 30, doc.y + 10);
 
-        doc.font('Helvetica')
-            .fillColor('#666666');
+        doc.font('Helvetica').fillColor('#6c757d');
 
-        let filterY = doc.y + 15;
+        let metaY = doc.y + 10;
         if (date) {
-            doc.text(`• Date: ${date}`, 50, filterY);
-            filterY += 20;
+            doc.text(`• Date: ${date}`, 40, metaY + 15);
         }
         if (course) {
-            doc.text(`• Course: ${course}`, 50, filterY);
-            filterY += 20;
+            doc.text(`• Course: ${course}`, date ? 30 : 30, metaY + 5);
         }
+        doc.text(`• Generated: ${new Date().toLocaleString()}`, course ? 30 : 30, metaY - 10);
+        doc.text(`• Total Records: ${attendances.length}`, 500, metaY -10);
 
-        doc.text(`• Generated: ${new Date().toLocaleString()}`, 50, filterY);
-        doc.moveDown(2);
+        doc.moveTo(20, doc.y + 40)
+            .lineTo(doc.page.width - 20, doc.y + 40)
+            .stroke('#dee2e6')
+            .moveDown(2);
 
-        // Create table with landscape-optimized layout
-        const headers = ['Student/Parent ID', 'Name', 'Course', 'Time In', 'Time Out', 'Date', 'Status'];
-        const columnWidths = [120, 120, 220, 80, 80, 90, 70];
-        const rowHeight = 25;
-        const tableTop = doc.y;
-
-        // Draw table headers with background
-        doc.fillColor('#ffffff')
+        // Add summary section before detailed records
+        // --- ADJUSTED: Position summary text at start (left-aligned) below the details box
+       
+        doc.fillColor('#2c3e50')
+            .fontSize(12)
             .font('Helvetica-Bold')
-            .fontSize(9);
+            .text('ATTENDANCE SUMMARY', 20, doc.y, {
+                align: 'left',
+                underline: false,
+                margin: [0, 20, 0, 10]
+            });
 
-        let x = 30;
-        headers.forEach((header, i) => {
-            doc.rect(x, tableTop, columnWidths[i], rowHeight)
-                .fill('#2c3e50')
-                .stroke('#2c3e50');
+        // Summary table with improved layout
+        const summaryHeaders = ['Course', 'Students', 'Parents', 'Total'];
+        const summaryWidths = [300, 100, 100, 100];
+        const summaryY = doc.y;
 
+        // Table header
+        doc.fillColor('#2c3e50')
+            .rect(20, summaryY, doc.page.width - 40, 25)
+            .fill();
+
+        let x = 20;
+        summaryHeaders.forEach((header, i) => {
             doc.fillColor('#ffffff')
-                .text(header, x + 5, tableTop + 8, {
-                    width: columnWidths[i] - 10,
-                    align: 'left',
-                    lineBreak: false
+                .font('Helvetica-Bold')
+                .fontSize(10)
+                .text(header, x + 10, summaryY + 8, {
+                    width: summaryWidths[i],
+                    align: i > 0 ? 'center' : 'left'
+                });
+            x += summaryWidths[i];
+        });
+
+        // Table rows
+        doc.font('Helvetica').fontSize(10);
+
+        let y = summaryY + 25;
+
+        Object.entries(summary).forEach(([courseName, stats], index) => {
+            // Alternate row colors
+            const rowColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+            doc.fillColor(rowColor)
+                .rect(20, y, doc.page.width - 40, 25)
+                .fill();
+
+            // Add cell borders
+            doc.strokeColor('#e9ecef')
+                .moveTo(20, y)
+                .lineTo(doc.page.width - 20, y)
+                .stroke();
+
+            // Course name with proper text wrapping
+            doc.fillColor('#212529')
+                .text(courseName, 30, y + 8, {
+                    width: summaryWidths[0] - 20,
+                    align: 'left'
                 });
 
+            // Numeric values centered
+            doc.text(stats.students.toString(), 320, y + 8, {
+                width: summaryWidths[1],
+                align: 'center'
+            });
+            doc.text(stats.parents.toString(), 420, y + 8, {
+                width: summaryWidths[2],
+                align: 'center'
+            });
+            doc.text(stats.total.toString(), 520, y + 8, {
+                width: summaryWidths[3],
+                align: 'center'
+            });
+
+            y += 25;
+        });
+
+        doc.moveDown(2);
+
+        // Detailed records section
+        doc.addPage({
+            size: 'A4',
+            layout: 'landscape',
+            margin: 20
+        });
+
+        doc.fillColor('#2c3e50')
+            .fontSize(12)
+            .font('Helvetica-Bold')
+            .text('DETAILED ATTENDANCE RECORDS', {
+                underline: false,
+                margin: [0, 10, 0, 15]
+            });
+
+        // Table setup
+        const headers = ['ID', 'Name', 'Role', 'Course', 'Time In', 'Time Out', 'Duration', 'Status'];
+        const columnWidths = [80, 120, 70, 150, 80, 80, 80, 70];
+        const defaultRowHeight = 25;
+        const font = 'Helvetica';
+        const fontSize = 9;
+        const verticalPadding = 16;
+
+        // Draw table header at a fixed Y position
+        const tableTopY = doc.y + 10;
+        x = 20;
+        doc.fillColor('#2c3e50')
+            .rect(20, tableTopY, doc.page.width - 40, defaultRowHeight)
+            .fill();
+
+        x = 20;
+        headers.forEach((header, i) => {
+            doc.fillColor('#ffffff')
+                .font('Helvetica-Bold')
+                .fontSize(fontSize)
+                .text(header, x + 5, tableTopY + 8, {
+                    width: columnWidths[i] - 10,
+                    align: i > 3 ? 'center' : 'left'
+                });
             x += columnWidths[i];
         });
 
-        // Set initial position for data rows
-        let y = tableTop + rowHeight;
-        doc.font('Helvetica')
-            .fontSize(9)
-            .fillColor('#333333');
+        // Reset Y position for the first row after the header
+        y = tableTopY + defaultRowHeight;
 
-        // Add attendance data with alternating row colors
+        // Table rows
+        doc.font(font).fontSize(fontSize);
+
+        let pageCount = 1;
+
         attendances.forEach((att, index) => {
-            const rowColor = index % 2 === 0 ? '#ffffff' : '#f9f9f9';
-            x = 30;
-
+            // Prepare row data
             let rowData;
             if (att.parent_id) {
+                const duration = att.time_out 
+                    ? formatDuration(new Date(att.time_out) - new Date(att.time_in)) 
+                    : 'N/A';
                 rowData = [
-                    `${att.parent_id.student_id?.student_id || 'Unknown'} (${att.parent_id.relation})`,
+                    `${att.parent_id.student_id?.student_id || 'N/A'}`,
                     att.parent_id.name,
-                    att.parent_id.student_id?.course_id?.name || 'Unknown',
-                    new Date(att.time_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    att.time_out
-                        ? new Date(att.time_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : 'N/A',
-                    new Date(att.date_in).toLocaleDateString(),
+                    att.parent_id.relation,
+                    att.parent_id.student_id?.course_id?.name || 'N/A',
+                    formatTime(att.time_in),
+                    att.time_out ? formatTime(att.time_out) : 'N/A',
+                    duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
             } else if (att.student_id) {
+                const duration = att.time_out 
+                    ? formatDuration(new Date(att.time_out) - new Date(att.time_in)) 
+                    : 'N/A';
                 rowData = [
                     att.student_id.student_id,
                     att.student_id.name,
-                    att.student_id.course_id?.name || 'Unknown',
-                    new Date(att.time_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                    att.time_out
-                        ? new Date(att.time_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        : 'N/A',
-                    new Date(att.date_in).toLocaleDateString(),
+                    'Student',
+                    att.student_id.course_id?.name || 'N/A',
+                    formatTime(att.time_in),
+                    att.time_out ? formatTime(att.time_out) : 'N/A',
+                    duration,
                     att.time_out ? 'Signed Out' : 'Present'
                 ];
             } else {
                 return; // Skip invalid records
             }
 
-            // Draw row background
-            headers.forEach((_, i) => {
-                doc.rect(x, y, columnWidths[i], rowHeight)
-                    .fill(rowColor)
-                    .stroke('#eeeeee');
-                x += columnWidths[i];
-            });
+            // Calculate dynamic row height based on wrapped text
+            const dynamicRowHeight = getRowHeight(doc, rowData, columnWidths, font, fontSize, verticalPadding);
 
-            // Draw row content
-            x = 30;
-            rowData.forEach((cell, i) => {
-                const textOptions = {
-                    width: columnWidths[i] - 10,
-                    align: 'left',
-                    ellipsis: true
-                };
-
-                doc.fillColor('#333333')
-                    .text(cell, x + 5, y + 8, textOptions);
-
-                x += columnWidths[i];
-            });
-
-            y += rowHeight;
-
-            // Check for page break (accounting for landscape height)
-            if (y + rowHeight > doc.page.height - 50) {
+            // Check for page break
+            if (y + dynamicRowHeight > doc.page.height - 30) {
                 doc.addPage({
                     size: 'A4',
                     layout: 'landscape',
-                    margin: 30
+                    margin: 20
                 });
+                pageCount++;
+
+                // Add header for continuation
+                doc.fillColor('#f8f9fa')
+                    .fontSize(8)
+                    .text(`Page ${pageCount} - Continued`, 20, 10);
+
+                // Redraw table headers at new fixed position
                 y = 30;
-
-                // Redraw headers on the new page
-                x = 30;
-                doc.fillColor('#ffffff')
-                    .font('Helvetica-Bold')
-                    .fontSize(9);
-
+                x = 20;
+                doc.fillColor('#2c3e50')
+                    .rect(20, y, doc.page.width - 40, defaultRowHeight)
+                    .fill();
+                x = 20;
                 headers.forEach((header, i) => {
-                    doc.rect(x, y, columnWidths[i], rowHeight)
-                        .fill('#2c3e50')
-                        .stroke('#2c3e50');
-
                     doc.fillColor('#ffffff')
+                        .font('Helvetica-Bold')
+                        .fontSize(fontSize)
                         .text(header, x + 5, y + 8, {
                             width: columnWidths[i] - 10,
-                            align: 'left'
+                            align: i > 3 ? 'center' : 'left'
                         });
-
                     x += columnWidths[i];
                 });
-
-                y += rowHeight;
-                doc.font('Helvetica')
-                    .fontSize(9)
-                    .fillColor('#333333');
+                y += defaultRowHeight;
             }
+
+            // Alternate row colors
+            const rowColor = index % 2 === 0 ? '#ffffff' : '#f8f9fa';
+            doc.fillColor(rowColor)
+                .rect(20, y, doc.page.width - 40, dynamicRowHeight)
+                .fill();
+
+            // Add cell borders
+            doc.strokeColor('#e9ecef')
+                .moveTo(20, y)
+                .lineTo(doc.page.width - 20, y)
+                .stroke();
+
+            // Draw row content (supporting multi-line)
+            x = 20;
+            rowData.forEach((cell, i) => {
+                doc.fillColor('#212529')
+                    .font(font)
+                    .fontSize(fontSize)
+                    .text(cell ? String(cell) : '', x + 5, y + 8, {
+                        width: columnWidths[i] - 10,
+                        align: i > 3 ? 'center' : 'left',
+                        height: dynamicRowHeight - verticalPadding
+                    });
+                x += columnWidths[i];
+            });
+
+            y += dynamicRowHeight; // Move y for the next row
         });
 
         // Finalize the PDF
