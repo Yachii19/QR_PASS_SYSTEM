@@ -754,3 +754,65 @@ exports.generateAttendancePDF = async (req, res) => {
         }
     }
 };
+
+// Add this to attendanceController.js
+exports.getCurrentAttendances = async (req, res) => {
+    try {
+        const attendances = await Attendance.find({ 
+            time_out: { $exists: false } 
+        })
+        .populate({
+            path: 'student_id',
+            select: 'student_id name course_id',
+            populate: {
+                path: 'course_id',
+                select: 'name'
+            }
+        })
+        .populate({
+            path: 'parent_id',
+            select: 'name relation student_id',
+            populate: {
+                path: 'student_id',
+                select: 'student_id name course_id',
+                populate: {
+                    path: 'course_id',
+                    select: 'name'
+                }
+            }
+        })
+        .sort({ time_in: 1 });
+
+        const processedAttendances = attendances.map(a => {
+            if (a.parent_id) {
+                return {
+                    parent: {
+                        parentName: a.parent_id.name,
+                        relation: a.parent_id.relation,
+                        studentId: a.parent_id.student_id?.student_id || 'Unknown',
+                        course: a.parent_id.student_id?.course_id?.name || 'Unknown Course'
+                    },
+                    timeIn: a.time_in
+                };
+            } else if (a.student_id) {
+                return {
+                    student: {
+                        studentId: a.student_id.student_id,
+                        studentName: a.student_id.name,
+                        course: a.student_id.course_id?.name || 'Unknown Course'
+                    },
+                    timeIn: a.time_in
+                };
+            }
+            return null;
+        }).filter(a => a !== null);
+
+        res.json({
+            success: true,
+            attendances: processedAttendances
+        });
+    } catch (error) {
+        console.error('Get current attendances error:', error);
+        errorResponse(res, 500, 'Failed to fetch current attendances');
+    }
+};

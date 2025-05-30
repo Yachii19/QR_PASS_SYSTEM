@@ -1,13 +1,16 @@
 import alertPopup from "./utils/alert.js";
 
+
 // API base URL
-const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com/api';
+// const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com/api';
+const API_BASE_URL = 'http://localhost:4000/api';
 let adminToken = null;
 let currentEditingCourseId = null;
 let currentDeletingCourseId = null;
 let currentDeletingCourseName = null;
+let attendanceChart = null;
 
-// Pagination variables
+// Pagination variables 
 const ITEMS_PER_PAGE = 10;
 let currentCoursePage = 1;
 let currentAttendancePage = 1;
@@ -24,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadCoursesForFilter();
         fetchAttendances();
         initializeTableDrag();
+        loadCurrentAttendances();
     }
 });
 
@@ -656,6 +660,8 @@ document.querySelectorAll('.tab').forEach(tab => {
         } else if (tab.dataset.tab === 'attendance-records') {
             currentAttendancePage = 1;
             fetchAttendances();
+        } else if (tab.dataset.tab === 'current-attendance') {
+            loadCurrentAttendances();
         }
     });
 });
@@ -767,6 +773,8 @@ function initializeTableDrag() {
 
 // QR Verification
 let scannerActive = false;
+let scanAnimationFrame = null;
+
 document.getElementById('scanBtn').addEventListener('click', startScanner);
 document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
 document.getElementById('newVerifyBtn').addEventListener('click', resetVerification);
@@ -890,19 +898,25 @@ async function verifyQRCode(encryptedData) {
     }
 }
 
-let scanAnimationFrame = null;
 
+// Remove duplicate event listeners if any
+document.getElementById('scanBtn').removeEventListener('click', startScanner);
+document.getElementById('stopScanBtn').removeEventListener('click', stopScanner);
+document.getElementById('newVerifyBtn').removeEventListener('click', resetVerification);
+
+// Add fresh event listeners
 document.getElementById('scanBtn').addEventListener('click', startScanner);
 document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
 document.getElementById('newVerifyBtn').addEventListener('click', resetVerification);
 
 async function startScanner() {
+     if (scannerActive) return;
     const course = document.getElementById('verifyCourse').value;
     if (!course) {
         alertPopup('Please select the program first');
         return;
     }
-    
+
     // UI Updates
     document.getElementById('scanBtn').classList.add('hidden');
     document.getElementById('stopScanBtn').classList.remove('hidden');
@@ -919,8 +933,7 @@ async function startScanner() {
         stopScanner();
     }
     
-    try {
-        // Android Chrome often needs more specific constraints
+     try {
         const constraints = {
             video: {
                 facingMode: 'environment',
@@ -930,12 +943,10 @@ async function startScanner() {
             }
         };
         
-        // Try to get the camera stream
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         window.scannerStream = stream;
         video.srcObject = stream;
         
-        // Important for Android Chrome - wait for metadata to load
         await new Promise((resolve) => {
             video.onloadedmetadata = () => {
                 video.play()
@@ -953,23 +964,25 @@ async function startScanner() {
         cameraStatus.textContent = 'Scanning for QR codes...';
         cameraStatus.className = 'scanning-status';
         
-        // Initialize QR code scanner
         const canvasElement = document.createElement('canvas');
         const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
         let lastScanTime = 0;
+        let isProcessing = false; // Flag to prevent multiple processing
         
         function scanFrame() {
             if (!scannerActive) return;
             
             scanAnimationFrame = requestAnimationFrame(scanFrame);
             
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
                 // Throttle scanning to reduce CPU usage
                 const now = Date.now();
                 if (now - lastScanTime < 300) return;
                 lastScanTime = now;
                 
                 try {
+                    isProcessing = true;
+                    
                     // Set canvas dimensions to match video
                     canvasElement.height = video.videoHeight;
                     canvasElement.width = video.videoWidth;
@@ -996,7 +1009,8 @@ async function startScanner() {
                     }
                 } catch (err) {
                     console.error('Scan error:', err);
-                    // Continue scanning even if one frame fails
+                } finally {
+                    isProcessing = false;
                 }
             }
         }
@@ -1005,12 +1019,10 @@ async function startScanner() {
     } catch (err) {
         console.error('Camera error:', err);
         
-        // Handle specific Android Chrome issues
         if (err.name === 'NotAllowedError') {
             cameraStatus.textContent = 'Camera access denied. Please allow camera permissions.';
             cameraStatus.className = 'error-message';
             
-            // Add instructions for Android users
             const helpText = document.createElement('div');
             helpText.className = 'camera-help';
             helpText.innerHTML = `
@@ -1038,13 +1050,11 @@ async function startScanner() {
 function stopScanner() {
     scannerActive = false;
     
-    // Cancel any pending animation frames
     if (scanAnimationFrame) {
         cancelAnimationFrame(scanAnimationFrame);
         scanAnimationFrame = null;
     }
     
-    // Stop all tracks in the stream
     if (window.scannerStream) {
         window.scannerStream.getTracks().forEach(track => {
             track.stop();
@@ -1052,13 +1062,11 @@ function stopScanner() {
         window.scannerStream = null;
     }
     
-    // Clear the video element
     const video = document.getElementById('scanner');
     if (video) {
         video.srcObject = null;
     }
     
-    // Reset UI
     document.getElementById('scanBtn').classList.remove('hidden');
     document.getElementById('stopScanBtn').classList.add('hidden');
     document.getElementById('scannerContainer').classList.add('hidden');
@@ -1286,3 +1294,232 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+async function loadCurrentAttendances() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/attendance/current`, {
+            headers: {
+                'Authorization': `Bearer ${adminToken}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            updateCurrentAttendanceTable(data.attendances);
+            updateAttendanceChart(data.attendances);
+            
+            // Update total users count
+            document.getElementById('totalTimedInUsers').textContent = data.attendances.length;
+            
+            // Update last update time
+            const now = new Date();
+            document.getElementById('lastUpdateTime').textContent = now.toLocaleTimeString();
+        } else {
+            throw new Error(data.error || 'Failed to load current attendances');
+        }
+    } catch (error) {
+        console.error('Load current attendances error:', error);
+        alertPopup('Failed to load current attendance data');
+    }
+}
+
+function updateCurrentAttendanceTable(attendances) {
+    const tbody = document.querySelector('#currentAttendanceTable tbody');
+    tbody.innerHTML = '';
+    
+    if (attendances.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="6" class="no-records">No currently timed-in users</td>';
+        tbody.appendChild(row);
+        return;
+    }
+    
+    attendances.forEach(att => {
+        const row = document.createElement('tr');
+        const now = new Date();
+        const timeIn = new Date(att.timeIn);
+        const duration = formatDuration(now - timeIn);
+        
+        if (att.parent) {
+            row.innerHTML = `
+                <td>${att.parent.studentId} (${att.parent.relation})</td>
+                <td>${att.parent.parentName}</td>
+                <td>${att.parent.relation}</td>
+                <td>${att.parent.course}</td>
+                <td>${timeIn.toLocaleTimeString()}</td>
+                <td>${duration}</td>
+            `;
+        } else {
+            row.innerHTML = `
+                <td>${att.student.studentId}</td>
+                <td>${att.student.studentName}</td>
+                <td>Student</td>
+                <td>${att.student.course}</td>
+                <td>${timeIn.toLocaleTimeString()}</td>
+                <td>${duration}</td>
+            `;
+        }
+        
+        tbody.appendChild(row);
+    });
+}
+
+function updateAttendanceChart(attendances) {
+    const ctx = document.getElementById('attendancePieChart').getContext('2d');
+    
+    // Group by program
+    const programCounts = {};
+    attendances.forEach(att => {
+        const program = att.parent ? att.parent.course : att.student.course;
+        programCounts[program] = (programCounts[program] || 0) + 1;
+    });
+    
+    const programs = Object.keys(programCounts);
+    const counts = Object.values(programCounts);
+    
+    // Generate colors for each program
+    const backgroundColors = programs.map((_, i) => {
+        const hue = (i * 137.508) % 360; // Golden angle approximation for distinct colors
+        return `hsl(${hue}, 70%, 60%)`;
+    });
+    
+    // Destroy previous chart if it exists
+    if (attendanceChart) {
+        attendanceChart.destroy();
+    }
+    
+    attendanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: programs,
+            datasets: [{
+                data: counts,
+                backgroundColor: backgroundColors,
+                borderWidth: 0,
+                borderRadius: 6,
+                barThickness: 'flex',
+                maxBarThickness: 35,
+                minBarLength: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',  // Horizontal bar chart
+            layout: {
+                padding: {
+                    left: 20,
+                    right: 30,
+                    top: 20,
+                    bottom: 20
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#FFFFFF',
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                y: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#FFFFFF',
+                        font: {
+                            size: 11
+                        },
+                        callback: function(value) {
+                            const label = this.getLabelForValue(value);
+                            if (label.length > 30) {
+                                return label.substring(0, 27) + '...';
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false  // Hide legend since labels are on Y axis
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            return tooltipItems[0].label;
+                        },
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return [
+                                `Total Users: ${value}`,
+                                `Percentage: ${percentage}%`
+                            ];
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart',
+                onProgress: function(animation) {
+                    // Add animation for bars growing
+                },
+                onComplete: function() {
+                    // Optional: Add any post-animation effects
+                }
+            },
+            hover: {
+                mode: 'nearest',
+                intersect: false,
+                animationDuration: 200
+            },
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+        }
+    });
+}
+
+function formatDuration(ms) {
+    if (!ms || ms < 0) return 'N/A';
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / (1000 * 60)) % 60);
+    const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+    
+    let parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0 || parts.length === 0) parts.push(`${seconds}s`);
+    
+    return parts.join(' ');
+}
+
+// Add refresh button event listener
+document.getElementById('refreshCurrentAttendance').addEventListener('click', async () => {
+    const refreshBtn = document.getElementById('refreshCurrentAttendance');
+    const originalHtml = refreshBtn.innerHTML;
+    
+    refreshBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Refreshing...';
+    refreshBtn.disabled = true;
+    
+    try {
+        await loadCurrentAttendances();
+    } finally {
+        refreshBtn.innerHTML = originalHtml;
+        refreshBtn.disabled = false;
+    }
+});

@@ -8,5 +8,6 @@ router.post('/decrypt-qr', attendanceController.decryptQR);
 router.get('/', verifyAdmin, attendanceController.getAttendances);
 router.delete('/', verifyAdmin, attendanceController.clearAttendances);
 router.get('/pdf', verifyAdmin, attendanceController.generateAttendancePDF);
+router.get('/current', verifyAdmin, attendanceController.getCurrentAttendances);
 
 module.exports = router;

@@ -11,6 +11,9 @@
 
     <!-- GSAP -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js" integrity="sha512-NcZdtrT77bJr4STcmsGAESr06BYGE8woZdSdEgqnpyqac7sugNO+Tr4bGwGF3MsnEkGKhU2KL2xh6Ec+BqsaHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- ChartJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
        
     <!-- Scripts for onload animations -->
     <script defer src="./assets/scripts/utils/animation.js"></script>
@@ -77,6 +80,10 @@
                 <i class="fa-solid fa-graduation-cap"></i>
                 Program Management
             </div>
+            <div class="tab" data-tab="current-attendance">
+                <i class="fa-solid fa-user-clock"></i>
+                Current Attendance
+            </div>
             <div class="tab" data-tab="attendance-records">
                 <i class="fa-solid fa-clipboard-list"></i>
                 Attendance Records
@@ -85,6 +92,7 @@
                 <i class="fa-solid fa-qrcode"></i>
                 Verify QR
             </div>
+
         </div>
         
         <!-- Course Management Tab -->
@@ -131,6 +139,58 @@
                     <button class="pagination-btn" id="nextCoursePage">
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add this with the other tab-content divs -->
+        <div id="current-attendance" class="tab-content">
+            <div class="management-section">
+                <div class="current-attendance-header">
+                    <div class="header-left">
+                        <h2 class="section-title">Currently Timed-In Users</h2>
+                        <div class="total-users">
+                            <span id="totalTimedInUsers">0</span>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <div class="last-update">
+                            Last updated: <span id="lastUpdateTime"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="current-attendance-container">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Distribution by Program</h3>
+                        </div>
+                        <canvas id="attendancePieChart"></canvas>
+                    </div>
+                    <div class="current-attendance-table-container">
+                        <div class="table-header">
+                            <h3>Active Users</h3>
+                            <button id="refreshCurrentAttendance" class="refresh-btn">
+                                <i class="fa-solid fa-rotate"></i>
+                                Refresh
+                            </button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table id="currentAttendanceTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Program</th>
+                                        <th>Time In</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

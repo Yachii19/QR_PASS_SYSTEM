@@ -588,6 +588,217 @@ img{
     flex-wrap: wrap;
 }
 
+/* Current Attendance Tab Styles */
+.current-attendance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #323741;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.total-users {
+    background: linear-gradient(135deg, #536AED 0%, #3a56d8 100%);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(83, 106, 237, 0.1);
+}
+
+.total-users span {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    display: block;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.total-users p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.last-update {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.current-attendance-container {
+    display: grid;
+    grid-template-areas: 
+        "chart chart"
+        "table table";
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.chart-container {
+    grid-area: chart;
+    background: #191C24;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.current-attendance-table-container {
+    grid-area: table;
+    background: #191C24;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.table-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    color: #fff;
+    border: 1px solid #323741;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: #323741;
+    transform: translateY(-2px);
+}
+
+.refresh-btn i {
+    font-size: 0.9rem;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 5px;
+}
+
+#currentAttendanceTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+#currentAttendanceTable th {
+    background: #000;
+    color: #fff;
+    font-weight: 500;
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid #323741;
+}
+
+#currentAttendanceTable td {
+    padding: 1rem;
+    border-bottom: 1px solid #323741;
+    color: #fff;
+}
+
+#currentAttendanceTable tbody tr:hover {
+    background: #323741;
+}
+
+.chart-header {
+    margin-bottom: 1rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.chart-container canvas {
+    flex: 1;
+    max-height: calc(100% - 3rem);
+}
+
+/* Mobile responsiveness for current attendance */
+@media (max-width: 1024px) {
+    .current-attendance-container {
+        grid-template-areas: 
+            "chart"
+            "table";
+    }
+    
+    .current-attendance-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .total-users {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .current-attendance-header {
+        margin-bottom: 1rem;
+    }
+    
+    .total-users {
+        padding: 0.8rem 1.5rem;
+    }
+    
+    .total-users span {
+        font-size: 1.5rem;
+    }
+    
+    .total-users p {
+        font-size: 0.8rem;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: flex-start;
+    }
+    
+    .refresh-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    #currentAttendanceTable th,
+    #currentAttendanceTable td {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
 /* Loading spinner for the button */
 .fa-spinner.fa-spin {
     animation: fa-spin 1s infinite linear;
