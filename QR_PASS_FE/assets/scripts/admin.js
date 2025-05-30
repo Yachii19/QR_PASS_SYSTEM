@@ -388,6 +388,12 @@ document.getElementById('editCourseModal').addEventListener('click', (e) => {
 document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
 document.querySelector('.close-modal').addEventListener('click', closeEditModal);
 
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+       closeEditModal();
+    }
+});
+
 document.getElementById('cancelEditBtn').addEventListener('click', () => {
     document.getElementById('editCourseModal').classList.add('hidden');
 });
@@ -505,6 +511,12 @@ document.querySelectorAll('.close-modal').forEach(btn => {
         }
     });
 });
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+       closeDeleteModal();
+    }
+})
 
 // Delete course
 document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
@@ -1342,7 +1354,7 @@ async function loadCurrentAttendances() {
                     studentCount++;
                 }
             });
-            
+
             // Update total users count
             document.getElementById('totalTimedInStudents').textContent = studentCount;
             document.getElementById('totalTimedInParents').textContent = parentCount;
@@ -1597,6 +1609,14 @@ document.querySelector('#attendanceTable tbody').addEventListener('click', (e) =
         document.body.classList.remove("modal-open");
         document.querySelector('#deleteAttendanceModal').style.display = 'none';
     })
+    
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            document.body.classList.remove("modal-open");
+            document.querySelector('#deleteAttendanceModal').style.display = 'none';
+        }
+    });
+
     document.getElementById('confirmAttDeleteBtn').addEventListener('click', async () => {
         
         deleteAttendanceRecord(attendanceId);
