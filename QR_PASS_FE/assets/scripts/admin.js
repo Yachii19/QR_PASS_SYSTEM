@@ -2,8 +2,8 @@ import alertPopup from "./utils/alert.js";
 
 
 // API base URL
-const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com/api';
-// const API_BASE_URL = 'http://localhost:4000/api';
+// const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com/api';
+const API_BASE_URL = 'http://localhost:4000/api';
 
 let adminToken = null;
 let currentEditingCourseId = null;
@@ -34,6 +34,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Admin login
 document.getElementById('adminLoginBtn').addEventListener('click', adminLogin);
+document.addEventListener('keydown', (e) => {
+    const loginContainer = document.querySelector('.login-container'); // added '.'
+
+    if (
+        e.key === 'Enter' &&
+        loginContainer && // always good to check if it exists
+        !loginContainer.classList.contains('hidden') // now checking if it does NOT have 'hidden'
+    ) {
+        e.preventDefault();
+        adminLogin();
+    }
+});
+
 
 async function adminLogin() {
     const username = document.getElementById('adminUsername').value.trim();
@@ -564,7 +577,7 @@ async function fetchAttendances() {
             
             if (data.attendances.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="6" class="no-records">No attendance records found</td>';
+                row.innerHTML = '<td colspan="7" class="no-records">No attendance records found</td>';
                 tbody.appendChild(row);
                 updateAttendancePagination();
                 return;
@@ -589,7 +602,7 @@ async function fetchAttendances() {
                 } else {
                     row.classList.add('absent');
                 }
-          
+
                 // Handle student or parent attendance
                 if (att.parent) {
                     row.innerHTML = `
@@ -601,10 +614,9 @@ async function fetchAttendances() {
                         <td>${new Date(att.date).toLocaleDateString()}</td>
                         <td>
                             <button class="icon-btn delete-btn" data-id="${att.id}" title="Delete Attendance">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
-                       
                     `;
                 } else if (att.student) {
                     row.innerHTML = `
@@ -614,15 +626,15 @@ async function fetchAttendances() {
                         <td>${new Date(att.timeIn).toLocaleTimeString()}</td>
                         <td>${timeOut}</td>
                         <td>${new Date(att.date).toLocaleDateString()}</td>
-                         td>
+                        <td>
                             <button class="icon-btn delete-btn" data-id="${att.id}" title="Delete Attendance">
-                                            <i class="fa-solid fa-trash"></i>
-                                        </button>
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
                     `;
                 } else {
                     row.innerHTML = `
-                        <td colspan="6" class="no-records">Invalid attendance record</td>
+                        <td colspan="7" class="no-records">Invalid attendance record</td>
                     `;
                 }
                 
@@ -1535,4 +1547,48 @@ document.getElementById('refreshCurrentAttendance').addEventListener('click', as
         refreshBtn.innerHTML = originalHtml;
         refreshBtn.disabled = false;
     }
+});
+
+// Add this function after the fetchAttendances function
+async function deleteAttendanceRecord(id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/attendance/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alertPopup('Attendance record deleted successfully');
+            fetchAttendances(); // Refresh the table
+        } else {
+            throw new Error(data.error || 'Failed to delete attendance record');
+        }
+    } catch (error) {
+        console.error('Delete attendance error:', error);
+        alertPopup('Failed to delete attendance record');
+    }
+}
+
+// Add event delegation for delete buttons
+document.querySelector('#attendanceTable tbody').addEventListener('click', (e) => {
+    const deleteBtn = e.target.closest('.delete-btn');
+    if (!deleteBtn) return;
+
+    document.body.classList.add("modal-open");
+    document.querySelector('#deleteAttendanceModal').style.display = 'flex';
+    const attendanceId = deleteBtn.dataset.id;
+    document.getElementById('cancelAttDeleteBtn').addEventListener('click', async () => {
+        document.body.classList.remove("modal-open");
+        document.querySelector('#deleteAttendanceModal').style.display = 'none';
+    })
+    document.getElementById('confirmAttDeleteBtn').addEventListener('click', async () => {
+        
+        deleteAttendanceRecord(attendanceId);
+        document.body.classList.remove("modal-open");
+        document.querySelector('#deleteAttendanceModal').style.display = 'none';
+    })
 });

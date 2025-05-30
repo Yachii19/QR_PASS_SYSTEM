@@ -466,6 +466,14 @@ img{
     justify-content: center;
     min-width: 32px;
     height: 32px;
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+}
+
+.courses-table .icon-btn:hover {
+    background-color: rgba(220, 53, 69, 0.4);
+    border-color: rgba(220, 53, 69, 0.6);
 }
 
 .courses-table .icon-btn i {
@@ -1666,5 +1674,29 @@ img{
 
 .scanning-status {
     color: #4caf50;
+}
+
+#attendanceTable .icon-btn {
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    background-color: rgba(220, 53, 69, 0.2);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #dc3545;
+}
+
+#attendanceTable .icon-btn:hover {
+    background-color: rgba(220, 53, 69, 0.4);
+    border-color: rgba(220, 53, 69, 0.6);
+}
+
+#attendanceTable .icon-btn i {
+    font-size: 14px;
 }
 

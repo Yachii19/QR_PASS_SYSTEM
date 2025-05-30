@@ -302,6 +302,7 @@ exports.getAttendances = async (req, res) => {
                 : null;
 
             return {
+                id: a._id,
                 student: studentDetails,
                 parent: parentDetails,
                 timeIn: a.time_in,
@@ -814,5 +815,26 @@ exports.getCurrentAttendances = async (req, res) => {
     } catch (error) {
         console.error('Get current attendances error:', error);
         errorResponse(res, 500, 'Failed to fetch current attendances');
+    }
+};
+
+exports.deleteAttendance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const attendance = await Attendance.findById(id);
+        if (!attendance) {
+            return errorResponse(res, 404, 'Attendance record not found');
+        }
+        
+        await Attendance.findByIdAndDelete(id);
+        
+        res.json({
+            success: true,
+            message: 'Attendance record deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete attendance error:', error);
+        errorResponse(res, 500, 'Failed to delete attendance record');
     }
 };

@@ -9,5 +9,6 @@ router.get('/', verifyAdmin, attendanceController.getAttendances);
 router.delete('/', verifyAdmin, attendanceController.clearAttendances);
 router.get('/pdf', verifyAdmin, attendanceController.generateAttendancePDF);
 router.get('/current', verifyAdmin, attendanceController.getCurrentAttendances);
+router.delete('/:id', verifyAdmin, attendanceController.deleteAttendance);
 
 module.exports = router;
