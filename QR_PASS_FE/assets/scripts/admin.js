@@ -1330,10 +1330,22 @@ async function loadCurrentAttendances() {
         if (response.ok) {
             updateCurrentAttendanceTable(data.attendances);
             updateAttendanceChart(data.attendances);
-            
+            const attendances = data.attendances
+            let studentCount = 0;
+            let parentCount = 0;
+
+            attendances.forEach(att => {
+                if (att.parent) {
+                    parentCount++;
+                }
+                if (att.student) {
+                    studentCount++;
+                }
+            });
             
             // Update total users count
-            document.getElementById('totalTimedInUsers').textContent = data.attendances.length;
+            document.getElementById('totalTimedInStudents').textContent = studentCount;
+            document.getElementById('totalTimedInParents').textContent = parentCount;
             
             // Update last update time
             const now = new Date();

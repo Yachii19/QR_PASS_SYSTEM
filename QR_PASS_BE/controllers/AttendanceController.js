@@ -818,6 +818,7 @@ exports.getCurrentAttendances = async (req, res) => {
     }
 };
 
+
 exports.deleteAttendance = async (req, res) => {
     try {
         const { id } = req.params;
@@ -826,7 +827,7 @@ exports.deleteAttendance = async (req, res) => {
         if (!attendance) {
             return errorResponse(res, 404, 'Attendance record not found');
         }
-        
+
         await Attendance.findByIdAndDelete(id);
         
         res.json({
