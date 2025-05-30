@@ -922,13 +922,13 @@ document.getElementById('stopScanBtn').addEventListener('click', stopScanner);
 document.getElementById('newVerifyBtn').addEventListener('click', resetVerification);
 
 async function startScanner() {
-     if (scannerActive) return;
+    if (scannerActive) return;
     const course = document.getElementById('verifyCourse').value;
     if (!course) {
         alertPopup('Please select the program first');
         return;
     }
-
+    
     // UI Updates
     document.getElementById('scanBtn').classList.add('hidden');
     document.getElementById('stopScanBtn').classList.remove('hidden');
@@ -945,7 +945,7 @@ async function startScanner() {
         stopScanner();
     }
     
-     try {
+    try {
         const constraints = {
             video: {
                 facingMode: 'environment',
@@ -979,7 +979,8 @@ async function startScanner() {
         const canvasElement = document.createElement('canvas');
         const canvas = canvasElement.getContext('2d', { willReadFrequently: true });
         let lastScanTime = 0;
-        let isProcessing = false; // Flag to prevent multiple processing
+        let lastScannedCode = null;
+        let isProcessing = false;
         
         function scanFrame() {
             if (!scannerActive) return;
@@ -987,22 +988,17 @@ async function startScanner() {
             scanAnimationFrame = requestAnimationFrame(scanFrame);
             
             if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
-                // Throttle scanning to reduce CPU usage
                 const now = Date.now();
-                if (now - lastScanTime < 300) return;
-                lastScanTime = now;
+                // Enforce a 2-second cooldown between scans
+                if (now - lastScanTime < 2000) return;
                 
                 try {
                     isProcessing = true;
                     
-                    // Set canvas dimensions to match video
                     canvasElement.height = video.videoHeight;
                     canvasElement.width = video.videoWidth;
-                    
-                    // Draw video frame to canvas
                     canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
                     
-                    // Get image data and scan for QR codes
                     const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
                     const code = jsQR(imageData.data, imageData.width, imageData.height, {
                         inversionAttempts: 'dontInvert',
@@ -1010,14 +1006,19 @@ async function startScanner() {
                     });
                     
                     if (code) {
-                        cameraStatus.textContent = 'QR code detected!';
-                        cameraStatus.className = 'success-message';
-                        
-                        // Add slight delay for user feedback
-                        setTimeout(() => {
-                            verifyQRCode(code.data);
-                            stopScanner();
-                        }, 500);
+                        // Check if this is a new QR code
+                        if (lastScannedCode !== code.data) {
+                            lastScannedCode = code.data;
+                            lastScanTime = now;
+                            cameraStatus.textContent = 'QR code detected!';
+                            cameraStatus.className = 'success-message';
+                            
+                            // Process the QR code after a brief delay
+                            setTimeout(() => {
+                                verifyQRCode(code.data);
+                                stopScanner();
+                            }, 500);
+                        }
                     }
                 } catch (err) {
                     console.error('Scan error:', err);
@@ -1030,11 +1031,9 @@ async function startScanner() {
         scanFrame();
     } catch (err) {
         console.error('Camera error:', err);
-        
         if (err.name === 'NotAllowedError') {
             cameraStatus.textContent = 'Camera access denied. Please allow camera permissions.';
             cameraStatus.className = 'error-message';
-            
             const helpText = document.createElement('div');
             helpText.className = 'camera-help';
             helpText.innerHTML = `
@@ -1054,7 +1053,6 @@ async function startScanner() {
             cameraStatus.textContent = 'Failed to access camera: ' + err.message;
             cameraStatus.className = 'error-message';
         }
-        
         stopScanner();
     }
 }
