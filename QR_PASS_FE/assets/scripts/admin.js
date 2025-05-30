@@ -4,6 +4,7 @@ import alertPopup from "./utils/alert.js";
 // API base URL
 const API_BASE_URL = 'https://qr-pass-system-iakb.onrender.com/api';
 // const API_BASE_URL = 'http://localhost:4000/api';
+
 let adminToken = null;
 let currentEditingCourseId = null;
 let currentDeletingCourseId = null;
@@ -588,7 +589,7 @@ async function fetchAttendances() {
                 } else {
                     row.classList.add('absent');
                 }
-                
+          
                 // Handle student or parent attendance
                 if (att.parent) {
                     row.innerHTML = `
@@ -598,6 +599,12 @@ async function fetchAttendances() {
                         <td>${new Date(att.timeIn).toLocaleTimeString()}</td>
                         <td>${timeOut}</td>
                         <td>${new Date(att.date).toLocaleDateString()}</td>
+                        <td>
+                            <button class="icon-btn delete-btn" data-id="${att.id}" title="Delete Attendance">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                        </td>
+                       
                     `;
                 } else if (att.student) {
                     row.innerHTML = `
@@ -607,6 +614,11 @@ async function fetchAttendances() {
                         <td>${new Date(att.timeIn).toLocaleTimeString()}</td>
                         <td>${timeOut}</td>
                         <td>${new Date(att.date).toLocaleDateString()}</td>
+                         td>
+                            <button class="icon-btn delete-btn" data-id="${att.id}" title="Delete Attendance">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                        </td>
                     `;
                 } else {
                     row.innerHTML = `
@@ -1309,6 +1321,7 @@ async function loadCurrentAttendances() {
             updateCurrentAttendanceTable(data.attendances);
             updateAttendanceChart(data.attendances);
             
+            
             // Update total users count
             document.getElementById('totalTimedInUsers').textContent = data.attendances.length;
             
@@ -1358,6 +1371,8 @@ function updateCurrentAttendanceTable(attendances) {
                 <td>${att.student.course}</td>
                 <td>${timeIn.toLocaleTimeString()}</td>
                 <td>${duration}</td>
+             
+                
             `;
         }
         
